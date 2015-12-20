@@ -39,7 +39,9 @@ public class SMZDM {
 				System.out.println(html);
 			}	
 		} finally {
-			response.close();
+			if(response != null){
+				response.close();
+			}
 		}
 	}
 }

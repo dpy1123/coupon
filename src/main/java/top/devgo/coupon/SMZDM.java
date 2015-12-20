@@ -76,7 +76,9 @@ public class SMZDM {
 				
 			}	
 		} finally {
-			response.close();
+			if (response != null) {
+				response.close();
+			}
 		}
 	}
 }

@@ -1,6 +1,8 @@
 package top.devgo.coupon;
 
 import java.io.IOException;
+
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -32,8 +34,19 @@ public class SMZDM {
 		
 		try {
 			HttpEntity entity = response.getEntity();
+			
+			Header contentType = entity.getContentType();
+			String encoding = "utf-8";
+			if(contentType != null){
+				String type = contentType.getValue();
+				if(type != null){
+					encoding = type.substring(type.lastIndexOf("charset=") + "charset=".length());
+				}
+			}
+//			System.out.println(encoding);
+			
 			if (entity != null) {
-				String htmlStr = EntityUtils.toString(entity, "UTF-8");
+				String htmlStr = EntityUtils.toString(entity, encoding);
 //				System.out.println(htmlStr);
 				
 				Document doc = Jsoup.parse(htmlStr);

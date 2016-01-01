@@ -1,7 +1,9 @@
 package top.devgo.coupon;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -16,14 +18,16 @@ import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import top.devgo.coupon.utils.JsonUtil;
 import top.devgo.coupon.utils.TextUtil;
 
 public class SMZDM2 {
 	public static void main(String[] args) throws IOException {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		
-		HttpGet httpget = new HttpGet("http://www.smzdm.com/json_more?timesort=145070648939");
+		HttpGet httpget = new HttpGet("http://www.smzdm.com/json_more?timesort=255070648939");
 		httpget.setHeader("Host", "www.smzdm.com");
 		httpget.setHeader("Referer", "http://www.smzdm.com/");
 		httpget.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36");
@@ -57,7 +61,7 @@ public class SMZDM2 {
 //				System.out.println(htmlStr);
 
 				
-				htmlStr = jsonString(htmlStr);
+				htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
 				
 				System.out.println(htmlStr);
 
@@ -70,11 +74,25 @@ public class SMZDM2 {
 				mapper.configure(Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;  
 				mapper.configure(Feature.ALLOW_SINGLE_QUOTES, true);
 				
-				JavaType javaType = mapper.getTypeFactory().constructParametrizedType(List.class, List.class, ZDMItem.class);
-				List<ZDMItem> lists = mapper.readValue(htmlStr, javaType);
+//				JavaType javaType = mapper.getTypeFactory().constructParametrizedType(List.class, List.class, ZDMItem.class);
+//				List<ZDMItem> lists = mapper.readValue(htmlStr, javaType);
+//				System.out.println(lists.size());
 				
-			    
-				System.out.println(lists.size());
+				JsonNode root = mapper.readTree(htmlStr);
+				System.out.println(root.size());
+				
+				for (int i = 0; i < root.size(); i++) {
+					JsonNode item = root.get(i);
+//					Iterator<Entry<String, JsonNode>> it = item.fields();
+//					while (it.hasNext()) {
+//						Entry<String, JsonNode> entry = (Entry<String, JsonNode>) it.next();
+//						
+//						System.out.print(entry.getKey()+" : "+entry.getValue());
+//					}
+//					System.out.print("\n");
+					System.out.println(item.get("article_channel").asText());
+				}
+				
 			}	
 		} finally {
 			if (response != null) {
@@ -83,22 +101,5 @@ public class SMZDM2 {
 		}
 	}
 	
-	private static String jsonString(String s){
-        char[] temp = s.toCharArray();       
-        int n = temp.length;
-        for(int i =0;i<n;i++){
-            if(temp[i]==':'&&temp[i+1]=='"'){
-                    for(int j =i+2;j<n;j++){
-                        if(temp[j]=='"'){
-                            if(temp[j+1]!=',' &&  temp[j+1]!='}'){
-                                temp[j]='”';
-                            }else if(temp[j+1]==',' ||  temp[j+1]=='}'){
-                                break ;
-                            }
-                        }
-                    }   
-            }
-        }       
-        return new String(temp);
-    }
+	
 }

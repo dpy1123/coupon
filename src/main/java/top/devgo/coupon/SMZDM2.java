@@ -10,6 +10,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -27,15 +29,28 @@ public class SMZDM2 {
 	public static void main(String[] args) throws IOException {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		
-		HttpGet httpget = new HttpGet("http://www.smzdm.com/json_more?timesort=255070648939");
-		httpget.setHeader("Host", "www.smzdm.com");
-		httpget.setHeader("Referer", "http://www.smzdm.com/");
-		httpget.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36");
-		httpget.setHeader("X-Requested-With", "XMLHttpRequest");
+//		HttpGet httpget = new HttpGet("http://www.smzdm.com/json_more?timesort=255070648939");
+//		httpget.setHeader("Host", "www.smzdm.com");
+//		httpget.setHeader("Referer", "http://www.smzdm.com/");
+//		httpget.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36");
+//		httpget.setHeader("X-Requested-With", "XMLHttpRequest");
+		
+		
+		HttpUriRequest request = RequestBuilder
+				.get()
+				.setUri("http://www.smzdm.com/json_more")
+				.addParameter("timesort", "255070648939")
+				.setHeader("Host", "www.smzdm.com")
+				.setHeader("Referer", "http://www.smzdm.com/")
+				.setHeader(
+						"User-Agent",
+						"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36")
+				.setHeader("X-Requested-With", "XMLHttpRequest").build();
 		
 		CloseableHttpResponse response = null;
 		try {
-			response = httpclient.execute(httpget);
+//			response = httpclient.execute(httpget);
+			response = httpclient.execute(request);
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -45,21 +60,21 @@ public class SMZDM2 {
 		try {
 			HttpEntity entity = response.getEntity();
 			
-			Header contentType = entity.getContentType();
-			String encoding = "utf-8";
-			if(contentType != null){
-				String type = contentType.getValue();
-				if(type != null){
-					encoding = type.substring(type.lastIndexOf("charset=") + "charset=".length());
-				}
-			}
-//			System.out.println(encoding);
 			
 			if (entity != null) {
+				Header contentType = entity.getContentType();
+				String encoding = "utf-8";
+				if(contentType != null){
+					String type = contentType.getValue();
+					if(type != null){
+						encoding = type.substring(type.lastIndexOf("charset=") + "charset=".length());
+					}
+				}
+//				System.out.println(encoding);
+				
 				String htmlStr = EntityUtils.toString(entity, encoding);
 				htmlStr = TextUtil.decodeUnicode(htmlStr);
 //				System.out.println(htmlStr);
-
 				
 				htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
 				

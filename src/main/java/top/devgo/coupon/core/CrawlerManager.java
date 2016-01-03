@@ -1,0 +1,137 @@
+package top.devgo.coupon.core;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+
+import top.devgo.coupon.core.task.Task;
+
+/**
+ * crawler的主控类
+ * @author DD
+ *
+ */
+public class CrawlerManager {
+	
+	/**
+	 * 线程安全的优先级队列，用来存放task
+	 */
+	private PriorityBlockingQueue<Task> taskQueue;
+	/**
+	 * 线程安全的HttpClientConnection连接池
+	 */
+	private PoolingHttpClientConnectionManager connectionManager;
+	private CloseableHttpClient httpclient; 
+	/**
+	 * Crawler线程池
+	 */
+	private ExecutorService crawlerThreadPool; 
+	
+	/**
+	 * 初始化stage
+	 * @param config
+	 */
+	private void initStage(Config config) {
+		
+		taskQueue = new PriorityBlockingQueue<Task>(config.getTaskQueueCapacity());
+
+		// Create an HttpClient with the ThreadSafeClientConnManager.
+        // This connection manager must be used if more than one thread will
+        // be using the HttpClient.
+		connectionManager = new PoolingHttpClientConnectionManager();
+		connectionManager.setValidateAfterInactivity(config.getConnectionValidateInterval());
+		connectionManager.setMaxTotal(config.getMaxConnections());
+		
+		httpclient = HttpClients.custom().setConnectionManager(connectionManager).build();
+		
+		crawlerThreadPool = Executors.newFixedThreadPool(config.getMaxCrawlers());
+		
+		List<Task> seeds = config.getBeginningTasks();
+		if(seeds!=null){
+			for (Iterator<Task> it = seeds.iterator(); it.hasNext();) {
+				Task task = it.next();
+				taskQueue.put(task);
+			}
+		}
+	}
+	
+	private Thread taskManager;//用来管理task的执行 
+	private boolean started = false;//记录本容器是否启动
+	private final CrawlerManager self = this;
+	
+	public void start(final Config config) {
+		if(started){//已被启动
+			return;
+		}
+		
+		started = true;
+		initStage(config);
+		
+		taskManager = new Thread(new Runnable() {
+			public void run() {
+				try {
+					while (started) {
+						int tasks = taskQueue.size();
+						int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
+						if (tasks < 1) {
+							System.out.println("暂无新任务，尚有"+workingThread+"个任务在执行。");
+						}else{
+							for (int i = 0; i < tasks; i++) {
+								Task task = taskQueue.poll();
+								crawlerThreadPool.execute(new Crawler(httpclient, task, self));
+							}
+							System.out.println("新增"+tasks+"个任务，尚有"+workingThread+"个任务在执行。");
+						}
+						sleep(config.getTaskScanInterval());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+			
+		});
+		taskManager.start();
+		
+	}
+
+	public void stop() {
+		if(!started){//未启动
+			return;
+		}
+		
+		started = false;
+		waitUntilFinish();
+	}
+	
+	private void waitUntilFinish() {
+		int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
+		while (workingThread > 0) {
+			sleep(3);
+		}
+		try {
+			httpclient.close();
+		} catch (IOException e) {
+		}
+	}
+	
+	protected void sleep(int seconds) {
+		try {
+			Thread.sleep(seconds * 1000);
+		} catch (InterruptedException ignored) {
+			// Do nothing
+		}
+	}
+	
+	public void addTaskToQueue(Task task) {
+		taskQueue.put(task);
+	}
+}

@@ -62,8 +62,12 @@ public class SMZDMTask implements Task, Comparable<Task> {
 		
 		List<Task> newTasks = new ArrayList<Task>();
 		if (data.size() > 0) {
-			SMZDMTask task = new SMZDMTask(data.get(data.size()-1).get("timesort"));
-			newTasks.add(task);
+			String timesort = data.get(data.size()-1).get("timesort");
+			String article_date = data.get(data.size()-1).get("article_date");
+			if(article_date.length() <= 5){//"article_date":"22:31",只要当日的
+				SMZDMTask task = new SMZDMTask(timesort);
+				newTasks.add(task);
+			}
 		}
 		return newTasks;
 	}

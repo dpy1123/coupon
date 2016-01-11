@@ -11,75 +11,67 @@ import java.util.Map.Entry;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import top.devgo.coupon.core.page.Page;
 
-import top.devgo.coupon.utils.JsonUtil;
-import top.devgo.coupon.utils.TextUtil;
+/**
+ * 所有业务Task类继承本类
+ * @author DD
+ *
+ */
+public abstract class TaskBase implements Task, Comparable<Task> {
 
-public class SMZDMTask implements Task, Comparable<Task> {
-
-	private String timesort;
-	private int priority;
+	protected int priority;//优先级
 	
-	public SMZDMTask(String timesort) {
-		this(timesort, 1);
-	}
-	public SMZDMTask(String timesort, int priority) {
-		this.timesort = timesort;
+	public TaskBase(int priority) {
 		this.priority = priority;
 	}
 	
-	public HttpUriRequest buildRequest() {
-		HttpUriRequest request = RequestBuilder
-				.get()
-				.setUri("http://www.smzdm.com/json_more")
-				.addParameter("timesort", getTimesort())
-				.setHeader("Host", "www.smzdm.com")
-				.setHeader("Referer", "http://www.smzdm.com/")
-				.setHeader(
-						"User-Agent",
-						"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36")
-				.setHeader("X-Requested-With", "XMLHttpRequest").build();
-		return request;
-	}
+	/**
+	 * 获取内容
+	 * @param response
+	 * @return
+	 */
+	protected abstract Page buildPage(CloseableHttpResponse response);
+	/**
+	 * 处理获取的内容
+	 * @param page
+	 */
+	protected abstract void process(Page page);
+	/**
+	 * 获取新的任务
+	 * @param page
+	 * @return
+	 */
+	protected abstract List<Task> buildNewTask(Page page);
 
-
+	
 	public List<Task> process(CloseableHttpResponse response) {
-		String htmlStr = getHtmlStr(response);
-		
-		htmlStr = TextUtil.decodeUnicode(htmlStr);
-		htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
-		
-		List<Map<String, String>> data = extractData(htmlStr);
-		//TODO do sth with data
-		System.out.println("get: "+data.size());
-		
-		List<Task> newTasks = new ArrayList<Task>();
-		if (data.size() > 0) {
-			String timesort = data.get(data.size()-1).get("timesort");
-			String article_date = data.get(data.size()-1).get("article_date");
-			if(article_date.length() <= 5){//"article_date":"22:31",只要当日的
-				SMZDMTask task = new SMZDMTask(timesort);
-				newTasks.add(task);
-			}
-		}
-		return newTasks;
+		//1.获取内容
+		Page page = buildPage(response);
+		//2.处理获取的内容
+		process(page);
+		//3.返回获取的新任务
+		return buildNewTask(page);
 	}
 	
-	private List<Map<String, String>> extractData(String htmlStr){
+	/**
+	 * 从jsonString获取数据
+	 * @param jsonString
+	 * @return data.size()==0表示无数据
+	 */
+	protected List<Map<String, String>> extractData(String jsonString){
 		List<Map<String, String>> data = new ArrayList<Map<String,String>>();
 		ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
 		mapper.configure(Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;  
 		mapper.configure(Feature.ALLOW_SINGLE_QUOTES, true);
 		JsonNode root = null;
 		try {
-			root = mapper.readTree(htmlStr);
+			root = mapper.readTree(jsonString);
 			for (int i = 0; i < root.size(); i++) {
 				JsonNode item = root.get(i);
 				Map<String, String> map = new HashMap<String, String>();
@@ -96,7 +88,12 @@ public class SMZDMTask implements Task, Comparable<Task> {
 		return data;
 	}
 	
-	private String getHtmlStr(CloseableHttpResponse response) {
+	/**
+	 * 获取htmlString
+	 * @param response
+	 * @return
+	 */
+	protected String getHtmlStr(CloseableHttpResponse response) {
 		String htmlStr = null;
 		try {
 			HttpEntity entity = response.getEntity();
@@ -119,14 +116,6 @@ public class SMZDMTask implements Task, Comparable<Task> {
 	}
 
 
-	public String getTimesort() {
-		return timesort;
-	}
-
-
-	public void setTimesort(String timesort) {
-		this.timesort = timesort;
-	}
 
 	public int getPriority() {
 		return priority;
@@ -136,6 +125,9 @@ public class SMZDMTask implements Task, Comparable<Task> {
 		this.priority = priority;
 	}
 
+	/**
+	 * 优先级比较逻辑
+	 */
 	public int compareTo(Task o) {
 		return this.getPriority()-o.getPriority();
 	}

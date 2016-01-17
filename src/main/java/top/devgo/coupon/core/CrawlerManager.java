@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -110,17 +111,22 @@ public class CrawlerManager {
 		}
 		
 		started = false;
-		waitUntilFinish();
+		waitUntilFinish(1L);
 	}
 	
-	private void waitUntilFinish() {
-		int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
-		while (workingThread > 0) {
-			sleep(3);
-		}
+	private void waitUntilFinish(long timeout) {
+//		int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
+//		while (workingThread > 0) {
+//			sleep(3);
+//		}
 		try {
+			if (!crawlerThreadPool.awaitTermination(timeout, TimeUnit.MINUTES)) {
+				crawlerThreadPool.shutdownNow();
+			}
 			httpclient.close();
+			connectionManager.close();
 		} catch (IOException e) {
+		} catch (InterruptedException e) {
 		}
 	}
 	

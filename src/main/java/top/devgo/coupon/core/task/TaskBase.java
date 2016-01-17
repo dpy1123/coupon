@@ -16,6 +16,7 @@ import org.apache.http.util.EntityUtils;
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import top.devgo.coupon.core.page.Page;
 
 /**
@@ -103,8 +104,12 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 				String encoding = "utf-8";
 				if(contentType != null){
 					String type = contentType.getValue();
-					if(type != null){
+					if(type != null){//Content-Type:text/html;charset=utf-8;
 						encoding = type.substring(type.lastIndexOf("charset=") + "charset=".length());
+						int pos = encoding.lastIndexOf(";");
+						if(pos > -1){
+							encoding = encoding.substring(0, pos);
+						}
 					}
 				}
 				htmlStr = EntityUtils.toString(entity, encoding);

@@ -15,7 +15,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class SMZDM {
+public class SMZDMComment {
 	public static void main(String[] args) throws IOException {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		
@@ -51,43 +51,33 @@ public class SMZDM {
 			
 			if (entity != null) {
 				String htmlStr = EntityUtils.toString(entity, encoding);
-				System.out.println(htmlStr);
+//				System.out.println(htmlStr);
 				
 				Document doc = Jsoup.parse(htmlStr);
-				Elements lists = doc.select("body > section > div.leftWrap > div.list:not(body > section > div.leftWrap > div.list.top.topSpace)");
+				Element pageCurrent = doc.select("#commentTabBlockNew > ul.pagination > li > a.pageCurrent").first();
+				String currnetPage = pageCurrent.text();
+				
+				Element pageTotal = doc.select("#commentTabBlockNew > ul.pagination > li:nth-last-child(4) > a").first();
+				String totalPage = pageTotal.text();
+				
+				System.out.println(currnetPage+"/"+totalPage);
+				
+				Elements lists = doc.select("#commentTabBlockNew > ul.comment_listBox > li");
 				for (Element element : lists) {
-					Element title = element.select("div.listTitle > h4 > a").first();
-					if(title != null){
-						String t = title.text();
-						String detailUrl = title.attr("href");
-						String p = null;
-						Element prise = title.child(0);
-						if(prise != null){
-							p = prise.text();
-							t = t.substring(0, t.lastIndexOf(p));
-						}
-						System.out.print(t+" || "+p+" || "+detailUrl);
+					String commentId = element.attr("id");
+					System.out.print(commentId);
+					Element parent = element.select("div.comment_conBox > div.blockquote_wrap > blockquote:last-child").first();
+					if(parent != null){
+						String parentId = parent.attr("blockquote_cid");
+						System.out.print("---"+parentId);
 					}
 					
-					Element time = element.select("div.listRight > div.lrTop > span.lrTime").first();
-					if(time != null){
-						System.out.print(" || "+time.text());
-					}
-					
-					Element img = element.select("a > img").first();
-					if(img != null){
-						System.out.print(" || "+img.attr("src"));
-					}
-					
-					Element bref = element.select("div.listRight > div.lrInfo").first();
-					if(bref != null){
-						System.out.print(" || "+bref.text());
-					}
-					Element shoppingUrl = element.select("div.listRight > div.lrBot > div.botPart > div > a").first();
-					if(shoppingUrl != null){
-						System.out.print(" || "+shoppingUrl.attr("href"));
-					}
-					
+					Element content = element.select("div.comment_conBox > div.comment_conWrap > div.comment_con").first();
+					Element positive = element.select("div.comment_conBox > div.comment_conWrap > div.comment_action > a.dingNum > span").first();
+					Element negative = element.select("div.comment_conBox > div.comment_conWrap > div.comment_action > a.caiNum > span").first();
+					System.out.print("---"+content.text());
+					System.out.print("---"+positive.text());
+					System.out.print("---"+negative.text());
 					System.out.print("\r");
 				}
 				

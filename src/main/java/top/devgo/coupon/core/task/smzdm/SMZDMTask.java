@@ -7,11 +7,6 @@ import java.util.Map;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.bson.Document;
-
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 
 import top.devgo.coupon.core.page.Page;
 import top.devgo.coupon.core.task.Task;
@@ -26,6 +21,21 @@ public class SMZDMTask extends TaskBase {
 	private String mongoURI;
 	private String dbName;
 	
+	
+	/**
+	 * 初始化smzdm首页抓取任务
+	 * @param priority
+	 * @param timesort 时间戳
+	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
+	 * @param dbName
+	 */
+	public SMZDMTask(int priority, String timesort, String mongoURI, String dbName) {
+		super(priority);
+		this.timesort = timesort;
+		this.mongoURI = mongoURI;
+		this.dbName = dbName;
+	}
+	
 	/**
 	 * 初始化smzdm首页抓取任务
 	 * @param timesort 时间戳
@@ -33,17 +43,16 @@ public class SMZDMTask extends TaskBase {
 	 * @param dbName
 	 */
 	public SMZDMTask(String timesort, String mongoURI, String dbName) {
-		super(1);
-		this.timesort = timesort;
-		this.mongoURI = mongoURI;
-		this.dbName = dbName;
+		this(1, timesort, mongoURI, dbName);
 	}
+	
+
 	
 	public HttpUriRequest buildRequest() {
 		HttpUriRequest request = RequestBuilder
 				.get()
 				.setUri("http://www.smzdm.com/json_more")
-				.addParameter("timesort", getTimesort())
+				.addParameter("timesort", this.timesort)
 				.setHeader("Host", "www.smzdm.com")
 				.setHeader("Referer", "http://www.smzdm.com/")
 				.setHeader(
@@ -70,31 +79,34 @@ public class SMZDMTask extends TaskBase {
 		List<Map<String, String>> data = extractData(htmlStr);
 		page.setData(data);
 		
-		int dataSize = data.size();
-		if (dataSize > 0) {
-			MongoClient mongoClient = MongoDBUtil.getMongoClient(mongoURI);
-			MongoDatabase db = mongoClient.getDatabase(dbName);
-			MongoCollection<Document> collection = db.getCollection("smzdm");
-			List<Document> documents = new ArrayList<Document>();
-			for (int i = 0; i < dataSize; i++) {
-				Map<String, String> pair = data.get(i);
-				Document doc = new Document();
-				doc.putAll(pair);
-			    documents.add(doc);
-			}
-			collection.insertMany(documents);
+		//指定主键
+		for (Map<String, String> d : data) {
+			d.put("_id", d.get("article_id"));
 		}
+		MongoDBUtil.insertMany(data, this.mongoURI, this.dbName, "smzdm_data");
 	}
+
 
 	@Override
 	protected List<Task> buildNewTask(Page page) {
 		List<Map<String, String>> data = page.getData();
 		List<Task> newTasks = new ArrayList<Task>();
+		
+		//增加相应的评论的抓取任务
+		for (int i = 0; i < data.size(); i++) {
+			String commentUrl = data.get(i).get("article_url");//http://www.smzdm.com/p/744743
+			String productId = data.get(i).get("article_id");//744743
+			SMZDMCommentTask commentTask = new SMZDMCommentTask(this.priority+1, productId, commentUrl+"/p1", this.mongoURI, this.dbName);
+			newTasks.add(commentTask);
+		}
+		
+		//增加新的主页抓取任务
 		if (data.size() > 0) {
-			String timesort = data.get(data.size()-1).get("timesort");
-			String article_date = data.get(data.size()-1).get("article_date");
+			int pos = data.size()-1;
+			String timesort = data.get(pos).get("timesort");
+			String article_date = data.get(pos).get("article_date");
 			if(article_date.length() <= 5){//"article_date":"22:31",只要当日的
-				SMZDMTask task = new SMZDMTask(timesort, getMongoURI(), getDbName());
+				SMZDMTask task = new SMZDMTask(this.priority, timesort, this.mongoURI, this.dbName);
 				newTasks.add(task);
 			}
 		}

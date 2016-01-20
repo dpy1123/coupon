@@ -1,5 +1,6 @@
 package top.devgo.coupon.core.task.smzdm;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import org.apache.http.client.methods.RequestBuilder;
 import top.devgo.coupon.core.page.Page;
 import top.devgo.coupon.core.task.Task;
 import top.devgo.coupon.core.task.TaskBase;
+import top.devgo.coupon.utils.DateUtil;
 import top.devgo.coupon.utils.JsonUtil;
 import top.devgo.coupon.utils.MongoDBUtil;
 import top.devgo.coupon.utils.TextUtil;
@@ -77,6 +79,15 @@ public class SMZDMTask extends TaskBase {
 		htmlStr = TextUtil.decodeUnicode(htmlStr);
 		htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
 		List<Map<String, String>> data = extractData(htmlStr);
+		//格式化日期
+		for (Map<String, String> d : data) {
+			try {
+				String date = DateUtil.getDateString(DateUtil.getDateFromString(d.get("article_date")));
+				d.put("article_date_full", date);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
 		page.setData(data);
 		
 		//指定主键

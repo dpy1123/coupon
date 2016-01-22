@@ -7,6 +7,10 @@
 
 	<repositories>
 		<repository>
+            <id>mvn-repo</id>
+            <url>http://maven.nlpcn.org/</url>
+        </repository>
+		<repository>
 			<id>central</id>
 			<name>Maven Repository Switchboard</name>
 			<layout>default</layout>
@@ -15,6 +19,7 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+        
 	</repositories>
 
 	<dependencies>
@@ -38,6 +43,11 @@
 			<artifactId>mongo-java-driver</artifactId>
 			<version>3.2.0</version>
 		</dependency>
+		<dependency>
+            <groupId>org.ansj</groupId>
+            <artifactId>ansj_seg</artifactId>
+            <version>3.3</version>
+        </dependency>
 	</dependencies>
 
 

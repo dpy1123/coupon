@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.bulk.BulkWriteError;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -72,6 +74,20 @@ public class MongoDBUtil {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * 从collection中find数据
+	 * @param query 可以为null
+	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
+	 * @param dbName
+	 * @param collectionName
+	 */
+	public static FindIterable<Document> find(Bson query, String mongoURI, String dbName, String collectionName) {
+		MongoClient mongoClient = MongoDBUtil.getMongoClient(mongoURI);
+		MongoDatabase db = mongoClient.getDatabase(dbName);
+		MongoCollection<Document> collection = db.getCollection(collectionName);
+		return query == null ? collection.find() : collection.find(query);
 	}
 	
 }

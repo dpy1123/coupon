@@ -7,7 +7,6 @@ import java.util.Map;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.mongodb.DBObject;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoClient;
@@ -16,7 +15,6 @@ import com.mongodb.bulk.BulkWriteError;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.util.JSON;
 
 /**
  *  <p>MongoDB的工具类 单例模式 <p>

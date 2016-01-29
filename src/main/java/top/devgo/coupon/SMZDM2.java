@@ -1,10 +1,18 @@
 package top.devgo.coupon;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.ansj.app.keyword.KeyWordComputer;
+import org.ansj.app.keyword.Keyword;
+import org.ansj.dic.LearnTool;
+import org.ansj.domain.Nature;
+import org.ansj.domain.Term;
+import org.ansj.library.UserDefineLibrary;
+import org.ansj.splitWord.analysis.NlpAnalysis;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
@@ -15,6 +23,8 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.nlpcn.commons.lang.tire.GetWord;
+import org.nlpcn.commons.lang.util.StringUtil;
 
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.JavaType;
@@ -100,6 +110,8 @@ public class SMZDM2 {
 				JsonNode root = mapper.readTree(htmlStr);
 				System.out.println(root.size());
 				
+				KeyWordComputer kwc = new KeyWordComputer(5);
+				LearnTool learnTool = new LearnTool() ;
 				for (int i = 0; i < root.size(); i++) {
 					JsonNode item = root.get(i);
 //					Iterator<Entry<String, JsonNode>> it = item.fields();
@@ -109,9 +121,22 @@ public class SMZDM2 {
 //						System.out.print(entry.getKey()+" : "+entry.getValue());
 //					}
 //					System.out.print("\n");
-					System.out.println(item.get("article_channel").asText());
+					String title = item.get("article_title").asText();
+					String content = item.get("article_content_all").asText();
+					Collection<Keyword> result = kwc.computeArticleTfidf(title, StringUtil.rmHtmlTag(content));
+					
+//					Collection<Keyword> result = kwc.computeArticleTfidf(title);
+//					List<Term> result = NlpAnalysis.parse(title, learnTool);
+			        System.out.println(title+"\t"+result);
+			        
+//			        for (Keyword keyword : result) {
+//			        	GetWord getWord = UserDefineLibrary.FOREST.getWord(keyword.getName());
+//			        	 String temp = null;
+//			             if ((temp = getWord.getFrontWords()) != null)
+//			                 System.out.println(temp + "\t\t" + getWord.getParam(1) + "\t\t" + getWord.getParam(2));
+//			        }
 				}
-				
+//			        System.out.println(learnTool.getTopTree(0));
 			}	
 		} finally {
 			if (response != null) {

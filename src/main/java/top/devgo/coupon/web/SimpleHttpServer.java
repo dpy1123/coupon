@@ -39,8 +39,7 @@ public class SimpleHttpServer {
 		public void handle(HttpExchange httpExchange) throws IOException {
 			try {
 				String responseMsg = null; // 响应信息
-				
-				// /v1/smzdm_data/list?page=1&size=10&query=
+				// http://host/version/collection/function?params
 				String path = httpExchange.getRequestURI().getPath().trim();
 				if ("/".equals(path)) {
 					//TODO 访问根目录则返回可用的api列表
@@ -55,8 +54,9 @@ public class SimpleHttpServer {
 					writeToClient(httpExchange, 200, responseMsg);
 					return;
 				}
-				// v1/smzdm_data/list
+				// /version/collection/function?params
 				path = path.substring(path.indexOf("/")+1, path.contains("?")?path.indexOf("?"):path.length());
+				// version/collection/function
 				String[] call = path.split("/");
 				if (call.length != 3) {
 					responseMsg = "{error: \"请求有误，请求格式应为: http://host/version/collection/function?params\"}";

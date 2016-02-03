@@ -22,14 +22,17 @@ public class ApiService {
 	private static final String dbName = "coupon";
 
 	private enum ApiMethod {
-		LIST
+		LIST, LOG
 	}
 	
 	public static String processRequest(String collection, String function,
 			Map<String, String> paramers) throws JsonProcessingException {
 		String jsonResult = null; 
+		ObjectMapper mapper = new ObjectMapper(); 
 		ApiMethod method = ApiMethod.valueOf(function.toUpperCase());
 		switch (method) {
+		// 查询数据
+		// /v1/smzdm_data/list?page=1&size=10&query={"article_date_full":{"$gt":"2016-01-20"}} 有冒号要url编码
 		case LIST:
 			String page = paramers.get("page")==null?"1":paramers.get("page");
 			String pageSize = paramers.get("size")==null?"10":paramers.get("size");
@@ -47,10 +50,24 @@ public class ApiService {
 			data.put("total", total);
 			data.put("data", list);
 			
-			ObjectMapper mapper = new ObjectMapper(); 
 			jsonResult = mapper.writeValueAsString(data);
 			break;
-
+		//记录用户log
+		// /v1/view_log/log?user=dpy1123&site=smzdm&action=dislike/comment/buy
+		case LOG:
+			String user = paramers.get("user");
+			String site = paramers.get("site");
+			String action = paramers.get("action");
+			
+			MongoDBUtil.insertOne(
+					new Document("user", user)
+						.append("site", site)
+						.append("action", action),
+					mongodbUrl, dbName, collection.toLowerCase()
+			);
+			
+			jsonResult = mapper.writeValueAsString("success");
+			break;
 		default:
 			break;
 		}

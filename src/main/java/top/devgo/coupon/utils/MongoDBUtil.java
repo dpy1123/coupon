@@ -76,6 +76,21 @@ public class MongoDBUtil {
 		}
 	}
 	
+	
+	/**
+	 * 将data插入到mongodb中指定的collection中
+	 * @param data
+	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
+	 * @param dbName
+	 * @param collectionName
+	 */
+	public static void insertOne(Document data, String mongoURI, String dbName, String collectionName) {
+		MongoClient mongoClient = MongoDBUtil.getMongoClient(mongoURI);
+		MongoDatabase db = mongoClient.getDatabase(dbName);
+		MongoCollection<Document> collection = db.getCollection(collectionName);
+		collection.insertOne(data);
+	}
+	
 	/**
 	 * 从collection中find数据
 	 * @param query 可以为null.如果是原生query语句，可以用JSON.parse(query)转换成Bson

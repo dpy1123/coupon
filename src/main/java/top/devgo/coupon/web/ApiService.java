@@ -53,14 +53,16 @@ public class ApiService {
 			jsonResult = mapper.writeValueAsString(data);
 			break;
 		//记录用户log
-		// /v1/view_log/log?user=dpy1123&site=smzdm&action=dislike/comment/buy
+		// /v1/view_log/log?user=dpy1123&article_id=123&site=smzdm&action=dislike/comment/buy
 		case LOG:
 			String user = paramers.get("user");
+			String id = paramers.get("article_id");
 			String site = paramers.get("site");
 			String action = paramers.get("action");
 			
 			MongoDBUtil.insertOne(
 					new Document("user", user)
+						.append("article_id", id)
 						.append("site", site)
 						.append("action", action),
 					mongodbUrl, dbName, collection.toLowerCase()

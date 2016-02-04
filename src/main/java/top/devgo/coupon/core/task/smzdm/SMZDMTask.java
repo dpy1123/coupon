@@ -2,6 +2,7 @@ package top.devgo.coupon.core.task.smzdm;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -79,14 +80,17 @@ public class SMZDMTask extends TaskBase {
 		htmlStr = TextUtil.decodeUnicode(htmlStr);
 		htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
 		List<Map<String, String>> data = extractData(htmlStr);
-		//格式化日期
+		//规格化data
 		for (Map<String, String> d : data) {
+			//格式化日期
 			try {
 				String date = DateUtil.getDateString(DateUtil.getDateFromString(d.get("article_date")));
 				d.put("article_date_full", date);
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
+			
+			d.put("create_date", DateUtil.getDateString(new Date()));
 		}
 		page.setData(data);
 		

@@ -1,6 +1,7 @@
 package top.devgo.coupon.web;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Map;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import top.devgo.coupon.utils.DateUtil;
 import top.devgo.coupon.utils.MongoDBUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,13 +34,15 @@ public class ApiService {
 		ApiMethod method = ApiMethod.valueOf(function.toUpperCase());
 		switch (method) {
 		// 查询数据
-		// /v1/smzdm_data/list?page=1&size=10&query={"article_date_full":{"$gt":"2016-01-20"}} 有冒号要url编码
+		// /v1/smzdm_data/list?page=1&size=10&sort={"create_date":-1}&query={"article_date_full":{"$gt":"2016-01-20"}} 有冒号要url编码
 		case LIST:
 			String page = paramers.get("page")==null?"1":paramers.get("page");
-			String pageSize = paramers.get("size")==null?"10":paramers.get("size");
+			String pageSize = paramers.get("size")==null?"50":paramers.get("size");
 			String query = paramers.get("query");
-			System.out.println(query);
+			String sort = paramers.get("sort");
+			System.out.println("query: "+query+", sort: "+sort);
 			FindIterable<Document> iterable = MongoDBUtil.find((Bson) JSON.parse(query), mongodbUrl, dbName, collection.toLowerCase())
+					.sort((Bson) JSON.parse(sort))
 					.skip((Integer.parseInt(page)-1)*Integer.parseInt(pageSize))
 					.limit(Integer.parseInt(pageSize));
 			long total = MongoDBUtil.count((Bson) JSON.parse(query), mongodbUrl, dbName, collection.toLowerCase());
@@ -64,7 +68,8 @@ public class ApiService {
 					new Document("user", user)
 						.append("article_id", id)
 						.append("site", site)
-						.append("action", action),
+						.append("action", action)
+						.append("create_date", DateUtil.getDateString(new Date())),
 					mongodbUrl, dbName, collection.toLowerCase()
 			);
 			

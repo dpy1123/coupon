@@ -1,6 +1,7 @@
 package top.devgo.coupon.core.task.smzdm;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.jsoup.select.Elements;
 import top.devgo.coupon.core.page.Page;
 import top.devgo.coupon.core.task.Task;
 import top.devgo.coupon.core.task.TaskBase;
+import top.devgo.coupon.utils.DateUtil;
 import top.devgo.coupon.utils.MongoDBUtil;
 
 public class SMZDMCommentTask extends TaskBase {
@@ -122,7 +124,7 @@ public class SMZDMCommentTask extends TaskBase {
 			comment.put("id", commentId);
 			
 			//设置商品id
-			comment.put("product_id", this.productId);
+			comment.put("article_id", this.productId);
 
 			Element parent = element.select("div.comment_conBox > div.blockquote_wrap > blockquote:last-child").first();
 			if(parent != null){
@@ -130,14 +132,19 @@ public class SMZDMCommentTask extends TaskBase {
 				comment.put("parentId", parentId);
 			}
 			
+			Element time = element.select("div.comment_conBox > div.comment_avatar_time > div.time").first();
+			comment.put("time", time.text());
+			
 			Element content = element.select("div.comment_conBox > div.comment_conWrap > div.comment_con").first();
 			comment.put("content", content.text());
 			
 			Element positive = element.select("div.comment_conBox > div.comment_conWrap > div.comment_action > a.dingNum > span").first();
-			comment.put("positive", positive.text());
+			comment.put("positive", positive.text().substring(1, positive.text().length()-1));//(0)
 			
 			Element negative = element.select("div.comment_conBox > div.comment_conWrap > div.comment_action > a.caiNum > span").first();
-			comment.put("negative", negative.text());
+			comment.put("negative", negative.text().substring(1, negative.text().length()-1));
+			
+			comment.put("create_date", DateUtil.getDateString(new Date()));
 			
 			data.add(comment);
 		}

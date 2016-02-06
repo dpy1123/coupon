@@ -98,7 +98,7 @@ public class SMZDMTask extends TaskBase {
 		for (Map<String, String> d : data) {
 			d.put("_id", d.get("article_id"));
 		}
-		MongoDBUtil.insertMany(data, this.mongoURI, this.dbName, "smzdm_data");
+		MongoDBUtil.insertMany(data, true, this.mongoURI, this.dbName, "smzdm_data");
 	}
 
 

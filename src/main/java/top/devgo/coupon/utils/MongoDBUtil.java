@@ -96,7 +96,7 @@ public class MongoDBUtil {
 				replaced += update.getModifiedCount();
 			}
 			if (replaced > 0)
-				System.out.println(replaced + " 条记录已被更新");
+				System.out.println(replaced + "条记录已被更新");
 		}
 	}
 	

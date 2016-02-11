@@ -1,9 +1,14 @@
 package top.devgo.coupon;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.Map.Entry;
 
 import org.ansj.app.keyword.KeyWordComputer;
@@ -35,7 +40,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import top.devgo.coupon.utils.JsonUtil;
 import top.devgo.coupon.utils.TextUtil;
 
-public class SMZDM2 {
+public class SMZDMImage {
 	public static void main(String[] args) throws IOException {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		
@@ -48,10 +53,10 @@ public class SMZDM2 {
 		
 		HttpUriRequest request = RequestBuilder
 				.get()
-				.setUri("http://www.smzdm.com/json_more")
-				.addParameter("timesort", "955070648939")
-				.setHeader("Host", "www.smzdm.com")
-				.setHeader("Referer", "http://www.smzdm.com/")
+//				.setUri("http://y.zdmimg.com/201602/10/56bb5a25cc4815433.png_d200.jpg")
+				.setUri("http://www.smzdm.com/gourl/292E65A343153E68/AA_YH_75")
+//				.setHeader("Host", "y.zdmimg.com")
+//				.setHeader("Referer", "http://www.smzdm.com/")
 				.setHeader(
 						"User-Agent",
 						"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36")
@@ -76,67 +81,73 @@ public class SMZDM2 {
 				String encoding = "utf-8";
 				if(contentType != null){
 					String type = contentType.getValue();
-					if(type != null && type.startsWith("text/html")){//Content-Type:text/html;charset=utf-8;
+					
+					switch (type) {
+					case "image/png":
+						InputStream in = entity.getContent();
+						
+					    // get a unique name for storing this image
+						String url = request.getURI().toString();
+					    String extension = url.substring(url.lastIndexOf('.'));
+					    String hashedName = UUID.randomUUID() + extension;
+					
+					    // store image
+					    File storageFolder = new File(System.getProperty("user.dir") +"\\img");
+					    if (!storageFolder.exists()) {
+					      storageFolder.mkdirs();
+					    }
+					    String filename = storageFolder.getAbsolutePath() + "/" + hashedName;
+					    
+						byte[] buffer = new byte[1024];
+						int read = 0;
+						OutputStream fos = new FileOutputStream(new File(filename));
+						while ((read  = in.read(buffer)) > -1) {
+							fos.write(buffer, 0, read);
+						}
+						fos.flush();
+						fos.close();
+						in.close();
+						
+						break;
+
+					default://Content-Type:text/html;charset=utf-8;
 						encoding = type.substring(type.lastIndexOf("charset=") + "charset=".length());
 						int pos = encoding.lastIndexOf(";");
 						if(pos > -1){
 							encoding = encoding.substring(0, pos);
 						}
+						
+						String htmlStr = EntityUtils.toString(entity, encoding);
+						htmlStr = TextUtil.decodeUnicode(htmlStr);
+						
+						htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
+						
+						System.out.println(htmlStr);
+
+						
+						ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
+						
+						mapper.configure(Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;  
+						mapper.configure(Feature.ALLOW_SINGLE_QUOTES, true);
+						
+						
+						JsonNode root = mapper.readTree(htmlStr);
+						System.out.println(root.size());
+						
+						KeyWordComputer kwc = new KeyWordComputer(5);
+						LearnTool learnTool = new LearnTool() ;
+						for (int i = 0; i < root.size(); i++) {
+							JsonNode item = root.get(i);
+							String title = item.get("article_title").asText();
+							String content = item.get("article_content_all").asText();
+							Collection<Keyword> result = kwc.computeArticleTfidf(title, StringUtil.rmHtmlTag(content));
+							
+					        System.out.println(title+"\t"+result);
+					        
+						}
+						break;
 					}
 				}
-//				System.out.println(encoding);
-				
-				String htmlStr = EntityUtils.toString(entity, encoding);
-				htmlStr = TextUtil.decodeUnicode(htmlStr);
-//				System.out.println(htmlStr);
-				
-				htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
-				
-				System.out.println(htmlStr);
-
-				//GSON从json转java不好使
-//				Gson gson = new Gson();
-//				List<ZDMItem> lists = gson.fromJson("[{\"article_id\":\"379261\",\"article_title\":\"VERA WANG 王薇薇\"}]", new TypeToken<List<ZDMItem>>(){}.getType());
-				
-				ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
-				
-				mapper.configure(Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;  
-				mapper.configure(Feature.ALLOW_SINGLE_QUOTES, true);
-				
-//				JavaType javaType = mapper.getTypeFactory().constructParametrizedType(List.class, List.class, ZDMItem.class);
-//				List<ZDMItem> lists = mapper.readValue(htmlStr, javaType);
-//				System.out.println(lists.size());
-				
-				JsonNode root = mapper.readTree(htmlStr);
-				System.out.println(root.size());
-				
-				KeyWordComputer kwc = new KeyWordComputer(5);
-				LearnTool learnTool = new LearnTool() ;
-				for (int i = 0; i < root.size(); i++) {
-					JsonNode item = root.get(i);
-//					Iterator<Entry<String, JsonNode>> it = item.fields();
-//					while (it.hasNext()) {
-//						Entry<String, JsonNode> entry = (Entry<String, JsonNode>) it.next();
-//						
-//						System.out.print(entry.getKey()+" : "+entry.getValue());
-//					}
-//					System.out.print("\n");
-					String title = item.get("article_title").asText();
-					String content = item.get("article_content_all").asText();
-					Collection<Keyword> result = kwc.computeArticleTfidf(title, StringUtil.rmHtmlTag(content));
-					
-//					Collection<Keyword> result = kwc.computeArticleTfidf(title);
-//					List<Term> result = NlpAnalysis.parse(title, learnTool);
-			        System.out.println(title+"\t"+result);
-			        
-//			        for (Keyword keyword : result) {
-//			        	GetWord getWord = UserDefineLibrary.FOREST.getWord(keyword.getName());
-//			        	 String temp = null;
-//			             if ((temp = getWord.getFrontWords()) != null)
-//			                 System.out.println(temp + "\t\t" + getWord.getParam(1) + "\t\t" + getWord.getParam(2));
-//			        }
-				}
-//			        System.out.println(learnTool.getTopTree(0));
 			}	
 		} finally {
 			if (response != null) {

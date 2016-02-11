@@ -1,6 +1,7 @@
 package top.devgo.coupon.core.task;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -8,11 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
-
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +35,19 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	 * @param response
 	 * @return
 	 */
-	protected abstract Page buildPage(CloseableHttpResponse response);
+	protected Page buildPage(CloseableHttpResponse response) {
+		Page page = new Page();
+		HttpEntity entity = response.getEntity();
+		if (entity != null) {
+			try {
+				page.load(entity);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return page;
+	}
+	
 	/**
 	 * 处理获取的内容
 	 * @param page
@@ -90,32 +100,19 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	}
 	
 	/**
-	 * 获取htmlString
-	 * @param response
+	 * 从Page中获取htmlString
+	 * @param page
 	 * @return
 	 */
-	protected String getHtmlStr(CloseableHttpResponse response) {
+	protected String getHtmlStr(Page page) {
 		String htmlStr = null;
-		try {
-			HttpEntity entity = response.getEntity();
-		
-			if (entity != null) {
-				Header contentType = entity.getContentType();
-				String encoding = "utf-8";
-				if(contentType != null){
-					String type = contentType.getValue();
-					if(type != null){//Content-Type:text/html;charset=utf-8;
-						encoding = type.substring(type.lastIndexOf("charset=") + "charset=".length());
-						int pos = encoding.lastIndexOf(";");
-						if(pos > -1){
-							encoding = encoding.substring(0, pos);
-						}
-					}
-				}
-				htmlStr = EntityUtils.toString(entity, encoding);
+		String type = page.getContentType();
+		if(type != null && type.startsWith("text/html")){//text/html;charset=utf-8;
+			try {
+				htmlStr = new String(page.getContentData(), page.getContentCharset());
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
 			}
-		}catch(IOException e){
-			e.printStackTrace();
 		}
 		return htmlStr;
 	}

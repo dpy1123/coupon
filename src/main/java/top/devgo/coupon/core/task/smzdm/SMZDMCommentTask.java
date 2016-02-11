@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.jsoup.Jsoup;
@@ -73,17 +72,10 @@ public class SMZDMCommentTask extends TaskBase {
 		return request;
 	}
 
-	@Override
-	protected Page buildPage(CloseableHttpResponse response) {
-		Page page = new Page();
-		String htmlStr = getHtmlStr(response);
-		page.setOriginalHtml(htmlStr);
-		return page;
-	}
 
 	@Override
 	protected void process(Page page) {
-		String htmlStr = page.getOriginalHtml();
+		String htmlStr = getHtmlStr(page);
 		Document doc = Jsoup.parse(htmlStr);
 		
 		Element pageCurrent = doc.select("#commentTabBlockNew > ul.pagination > li > a.pageCurrent").first();

@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 
@@ -67,16 +66,8 @@ public class SMZDMTask extends TaskBase {
 
 
 	@Override
-	protected Page buildPage(CloseableHttpResponse response) {
-		Page page = new Page();
-		String htmlStr = getHtmlStr(response);
-		page.setOriginalHtml(htmlStr);
-		return page;
-	}
-
-	@Override
 	protected void process(Page page) {
-		String htmlStr = page.getOriginalHtml();
+		String htmlStr = getHtmlStr(page);
 		htmlStr = TextUtil.decodeUnicode(htmlStr);
 		htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
 		List<Map<String, String>> data = extractData(htmlStr);

@@ -1,7 +1,14 @@
 package top.devgo.coupon.core.page;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.util.EntityUtils;
 
 /**
  * 抓取结果的描述
@@ -9,20 +16,67 @@ import java.util.Map;
  *
  */
 public class Page {
-	private String originalHtml;//原始htmlString
-	private List<Map<String, String>> data;//从originalHtml中抽取的有意义的数据集合
+	/**
+	 * The content of this page in binary format.
+	 */
+	private byte[] contentData;
+	/**
+	 * The ContentType of this page. For example: "text/html; charset=UTF-8"
+	 */
+	private String contentType;
+
+	/**
+	 * The charset of the content. For example: "UTF-8"
+	 */
+	private String contentCharset;
 	
+	private List<Map<String, String>> parsedData;//从originalHtml中抽取的有意义的数据集合
 	
-	public String getOriginalHtml() {
-		return originalHtml;
+	/**
+	 * Loads the content of this page from a fetched HttpEntity.
+	 * @param entity HttpEntity
+	 * @throws IOException 
+	 */
+	public void load(HttpEntity entity) throws IOException  {
+		Header type = entity.getContentType();
+		if (type != null) {
+			setContentType(type.getValue());
+		}
+		Charset charset = ContentType.getOrDefault(entity).getCharset();
+		if (charset != null) {
+			setContentCharset(charset.displayName());
+		}
+		setContentData(EntityUtils.toByteArray(entity));
 	}
-	public void setOriginalHtml(String originalHtml) {
-		this.originalHtml = originalHtml;
-	}
+	
 	public List<Map<String, String>> getData() {
-		return data;
+		return parsedData;
 	}
 	public void setData(List<Map<String, String>> data) {
-		this.data = data;
+		this.parsedData = data;
+	}
+
+	public byte[] getContentData() {
+		return contentData;
+	}
+
+	public void setContentData(byte[] contentData) {
+		this.contentData = contentData;
+	}
+
+	public String getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
+	public String getContentCharset() {
+		return contentCharset;
+	}
+
+	public void setContentCharset(String contentCharset) {
+		this.contentCharset = contentCharset;
 	}
 }

@@ -108,6 +108,33 @@ public class IOUtil {
 		}
 		return "";
 	}
+	
+	/**
+	 * 从流中读取正文内容
+	 * 
+	 * @param is
+	 * @return
+	 */
+	public static byte[] getContent(InputStream is) {
+		byte[] result = null;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+		try {
+			int readed = 0;
+			byte[] buffer = new byte[1024];
+			while((readed = is.read(buffer)) > -1){
+				baos.write(buffer, 0, readed);
+			}
+			result = baos.toByteArray();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				baos.close();
+			} catch (IOException e) {
+			}
+		}
+		return result;
+	}
 
 	/**
 	 * 从文件中读取正文内容

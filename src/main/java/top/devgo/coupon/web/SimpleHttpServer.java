@@ -1,7 +1,9 @@
 package top.devgo.coupon.web;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
@@ -41,6 +43,12 @@ public class SimpleHttpServer {
 				String responseMsg = null; // 响应信息
 				// http://host/version/collection/function?params
 				String path = httpExchange.getRequestURI().getPath().trim();
+				
+				if (path != null && path.startsWith("/img")) {
+					writeToClient(httpExchange, 200, readFileToBytes(path));
+					return;
+				}
+				
 				if ("/".equals(path)) {
 					//TODO 访问根目录则返回可用的api列表
 					/*
@@ -140,6 +148,20 @@ public class SimpleHttpServer {
 			}
 		}
 		
+		private byte[] readFileToBytes(String path) {
+			InputStream fin = null;
+			try {
+				fin = new FileInputStream(System.getProperty("user.dir") + path);
+				fin.available();
+				return IOUtil.getContent(fin);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			} finally {
+				IOUtil.close(fin);
+			}
+		}
+		
 		/**
 		 * 向客户端回写信息
 		 * @param httpExchange
@@ -149,6 +171,13 @@ public class SimpleHttpServer {
 		 */
 		private void writeToClient(HttpExchange httpExchange, int status, String responseMsg) throws IOException {
 			byte[] bytes = responseMsg.getBytes("utf-8");
+			httpExchange.sendResponseHeaders(status, bytes.length); // 设置响应头属性及响应信息的长度
+			OutputStream out = httpExchange.getResponseBody(); // 获得输出流
+			out.write(bytes);
+			out.flush();
+		}
+		
+		private void writeToClient(HttpExchange httpExchange, int status, byte[] bytes) throws IOException {
 			httpExchange.sendResponseHeaders(status, bytes.length); // 设置响应头属性及响应信息的长度
 			OutputStream out = httpExchange.getResponseBody(); // 获得输出流
 			out.write(bytes);

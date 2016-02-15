@@ -116,6 +116,21 @@ public class MongoDBUtil {
 	}
 	
 	/**
+	 * 更新collection中的特定数据，通过filer找到待替换的数据。
+	 * @param filter 用来找到待更新的数据
+	 * @param data 新的数据
+	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
+	 * @param dbName
+	 * @param collectionName
+	 */
+	public static UpdateResult updateOne(Bson filter, Document data, String mongoURI, String dbName, String collectionName) {
+		MongoClient mongoClient = MongoDBUtil.getMongoClient(mongoURI);
+		MongoDatabase db = mongoClient.getDatabase(dbName);
+		MongoCollection<Document> collection = db.getCollection(collectionName);
+		return collection.updateOne(filter, data);
+	}
+	
+	/**
 	 * 将data插入到mongodb中指定的collection中
 	 * @param data
 	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"

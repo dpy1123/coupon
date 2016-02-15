@@ -98,12 +98,16 @@ public class SMZDMTask extends TaskBase {
 		List<Map<String, String>> data = page.getData();
 		List<Task> newTasks = new ArrayList<Task>();
 		
-		//增加相应的评论的抓取任务
+		
 		for (int i = 0; i < data.size(); i++) {
+			//增加相应的评论的抓取任务
 			String commentUrl = data.get(i).get("article_url");//http://www.smzdm.com/p/744743
 			String productId = data.get(i).get("article_id");//744743
 			SMZDMCommentTask commentTask = new SMZDMCommentTask(this.priority+1, productId, commentUrl+"/p1", this.mongoURI, this.dbName);
 			newTasks.add(commentTask);
+			//抓取图片
+			String picUrl = data.get(i).get("article_pic");
+			newTasks.add(new SMZDMImageTask(picUrl, productId, this.mongoURI, this.dbName));
 		}
 		
 		//增加新的主页抓取任务

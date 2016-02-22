@@ -69,4 +69,20 @@ public class DateUtil {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(formatString);
 		return dateFormat.format(date);
 	}
+	
+	/**
+	 * 获取一天开始的时间
+	 * @param date 日期 "2015-12-01 06:24:59.250"
+	 * @return "2015-12-01 00:00:00.000"
+	 */
+	public static Date getBeginOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+
+		return calendar.getTime();
+	}
+
 }

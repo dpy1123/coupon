@@ -120,8 +120,8 @@ public class SMZDMTask extends TaskBase {
 			SMZDMCommentTask commentTask = new SMZDMCommentTask(this.priority+1, productId, commentUrl+"/p1", this.mongoURI, this.dbName);
 			newTasks.add(commentTask);
 			//抓取图片
-			String picUrl = data.get(i).get("article_pic");
-			newTasks.add(new SMZDMImageTask(picUrl, productId, this.mongoURI, this.dbName));
+//			String picUrl = data.get(i).get("article_pic");
+//			newTasks.add(new SMZDMImageTask(picUrl, productId, this.mongoURI, this.dbName));
 		}
 		
 		//增加新的主页抓取任务

@@ -20,6 +20,7 @@ import top.devgo.coupon.utils.TextUtil;
 public class SMZDMTask extends TaskBase {
 
 	private String timesort;
+	private String stopDate;
 	private String mongoURI;
 	private String dbName;
 	
@@ -28,12 +29,14 @@ public class SMZDMTask extends TaskBase {
 	 * 初始化smzdm首页抓取任务
 	 * @param priority
 	 * @param timesort 时间戳
+	 * @param stopDate 抓取结束日期 "2015-12-01 00:00:00"
 	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
 	 * @param dbName
 	 */
-	public SMZDMTask(int priority, String timesort, String mongoURI, String dbName) {
+	public SMZDMTask(int priority, String timesort, String stopDate, String mongoURI, String dbName) {
 		super(priority);
 		this.timesort = timesort;
+		this.stopDate = stopDate;
 		this.mongoURI = mongoURI;
 		this.dbName = dbName;
 	}
@@ -45,7 +48,18 @@ public class SMZDMTask extends TaskBase {
 	 * @param dbName
 	 */
 	public SMZDMTask(String timesort, String mongoURI, String dbName) {
-		this(1, timesort, mongoURI, dbName);
+		this(1, timesort, DateUtil.getDateString(DateUtil.getBeginOfDay(new Date())), mongoURI, dbName);
+	}
+	
+	/**
+	 * 初始化smzdm首页抓取任务
+	 * @param timesort 时间戳
+	 * @param stopDate 抓取结束日期 "2015-12-01 00:00:00"
+	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
+	 * @param dbName
+	 */
+	public SMZDMTask(String timesort, String stopDate, String mongoURI, String dbName) {
+		this(1, timesort, stopDate, mongoURI, dbName);
 	}
 	
 
@@ -106,18 +120,27 @@ public class SMZDMTask extends TaskBase {
 			SMZDMCommentTask commentTask = new SMZDMCommentTask(this.priority+1, productId, commentUrl+"/p1", this.mongoURI, this.dbName);
 			newTasks.add(commentTask);
 			//抓取图片
-			String picUrl = data.get(i).get("article_pic");
-			newTasks.add(new SMZDMImageTask(picUrl, productId, this.mongoURI, this.dbName));
+//			String picUrl = data.get(i).get("article_pic");
+//			newTasks.add(new SMZDMImageTask(picUrl, productId, this.mongoURI, this.dbName));
 		}
 		
 		//增加新的主页抓取任务
 		if (data.size() > 0) {
 			int pos = data.size()-1;
 			String timesort = data.get(pos).get("timesort");
-			String article_date = data.get(pos).get("article_date");
-			if(article_date.length() <= 5){//"article_date":"22:31",只要当日的
-				SMZDMTask task = new SMZDMTask(this.priority, timesort, this.mongoURI, this.dbName);
-				newTasks.add(task);
+//			String article_date = data.get(pos).get("article_date");
+//			if(article_date.length() <= 5){//"article_date":"22:31",只要当日的
+//				SMZDMTask task = new SMZDMTask(this.priority, timesort, this.mongoURI, this.dbName);
+//				newTasks.add(task);
+//			}
+			String article_date = data.get(pos).get("article_date_full");
+			try {
+				if(DateUtil.getDateFromString(article_date).after(DateUtil.getDateFromString(this.stopDate))){//
+					SMZDMTask task = new SMZDMTask(this.priority, timesort, this.stopDate, this.mongoURI, this.dbName);
+					newTasks.add(task);
+				}
+			} catch (ParseException e) {
+				e.printStackTrace();
 			}
 		}
 		return newTasks;
@@ -146,5 +169,13 @@ public class SMZDMTask extends TaskBase {
 
 	public void setDbName(String dbName) {
 		this.dbName = dbName;
+	}
+
+	public String getStopDate() {
+		return stopDate;
+	}
+
+	public void setStopDate(String stopDate) {
+		this.stopDate = stopDate;
 	}
 }

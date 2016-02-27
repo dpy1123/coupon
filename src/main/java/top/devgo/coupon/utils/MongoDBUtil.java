@@ -93,7 +93,7 @@ public class MongoDBUtil {
 				String filter = "{\"_id\": \""+exist.get("_id")+"\"}";
 				Document newData = documents.get(index.get(exist.get("_id")));
 				UpdateResult update = replaceOne((Bson) JSON.parse(filter), newData, mongoURI, dbName, collectionName);
-				replaced += update.getModifiedCount();
+				replaced += 1;//update.getModifiedCount();//2.6以上才支持
 			}
 			if (replaced > 0)
 				System.out.println(replaced + "条记录已被更新");

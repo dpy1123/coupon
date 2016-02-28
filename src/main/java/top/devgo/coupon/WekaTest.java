@@ -1,13 +1,20 @@
 package top.devgo.coupon;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.Random;
+
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import top.devgo.coupon.utils.MongoDBUtil;
+import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
+import weka.core.Instances;
+import weka.core.converters.CSVLoader;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.util.JSON;
@@ -18,8 +25,29 @@ public class WekaTest {
 	private static final String mongodbUrl = "mongodb://localhost:27017";
 	private static final String dbName = "coupon";
 	
-	public static void main(String[] args) throws IOException {
-		Writer outputWriter = new FileWriter("test.csv") ;
+	public static void main(String[] args) throws IOException, Exception {
+		String path = "test.csv";
+//		buildCsvFile(path);
+		
+		// load CSV
+	    CSVLoader loader = new CSVLoader();
+	    loader.setSource(new File(path));
+	    Instances data = loader.getDataSet();
+	    data.setClassIndex(data.numAttributes() - 1);
+	    
+	    Classifier cf  = (Classifier) Class.forName("weka.classifiers.trees.RandomForest").newInstance(); 
+//	    cf.buildClassifier(data);
+	    
+	    Evaluation eval = new Evaluation(data);
+        eval.crossValidateModel(cf, data, 10, new Random(1));
+        
+        System.out.println(eval.toSummaryString("Results\n", false));
+        System.out.println(eval.toClassDetailsString());
+        System.out.println(eval.toMatrixString());
+	}
+
+	private static void buildCsvFile(String path) throws IOException {
+		Writer outputWriter = new FileWriter(path) ;
 		CsvWriterSettings settings = new CsvWriterSettings();
 	    // Sets the character sequence to write for the values that are null.
 	    settings.setNullValue("?");
@@ -66,6 +94,5 @@ public class WekaTest {
 			writer.writeRow(document);
 		}
 		writer.close();
-		
 	}
 }

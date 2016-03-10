@@ -102,7 +102,7 @@ public class SMZDMCommentTask extends TaskBase {
 		for (Map<String, String> d : data) {
 			d.put("_id", d.get("id"));
 		}
-		MongoDBUtil.insertMany(data, true, this.mongoURI, this.dbName, "smzdm_comment");
+		MongoDBUtil.insertMany(data, false, this.mongoURI, this.dbName, "smzdm_comment");
 	}
 
 	private List<Map<String, String>> extractData(Document doc) {

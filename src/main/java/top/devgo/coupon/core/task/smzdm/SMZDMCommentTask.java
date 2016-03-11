@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,6 +21,7 @@ import top.devgo.coupon.utils.DateUtil;
 import top.devgo.coupon.utils.MongoDBUtil;
 
 public class SMZDMCommentTask extends TaskBase {
+	private static Logger logger = Logger.getLogger(SMZDMCommentTask.class.getName());
 	
 	private String url;
 	private String mongoURI;
@@ -93,7 +95,7 @@ public class SMZDMCommentTask extends TaskBase {
 			this.totalPage = Integer.parseInt(pageTotal.text());
 		}
 		
-		System.out.println(Thread.currentThread().getName()+"---"+currentPage+"/"+totalPage);
+		logger.info(Thread.currentThread().getName()+"---"+currentPage+"/"+totalPage);
 		
 		List<Map<String, String>> data = extractData(doc);
 		page.setData(data);
@@ -155,6 +157,13 @@ public class SMZDMCommentTask extends TaskBase {
 			newTasks.add(task);
 		}
 		return newTasks;
+	}
+
+	@Override
+	public String toString() {
+		return "SMZDMCommentTask [url=" + url + ", mongoURI=" + mongoURI
+				+ ", dbName=" + dbName + ", currentPage=" + currentPage
+				+ ", totalPage=" + totalPage + ", productId=" + productId + "]";
 	}
 
 	public String getUrl() {

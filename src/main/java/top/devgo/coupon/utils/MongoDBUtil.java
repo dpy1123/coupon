@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -26,6 +27,7 @@ import com.mongodb.util.JSON;
  * @author DD
  */  
 public class MongoDBUtil {
+	private static Logger logger = Logger.getLogger(MongoDBUtil.class.getName());
 	private static MongoClient mongoClient = null;
 	
 	private MongoDBUtil(){}
@@ -73,7 +75,7 @@ public class MongoDBUtil {
 			List<BulkWriteError> errors = e.getWriteErrors();
 			for (BulkWriteError err : errors) {
 				if(ErrorCategory.fromErrorCode(err.getCode()) != ErrorCategory.DUPLICATE_KEY){
-					System.out.println(err.getMessage());
+					logger.error(err.getMessage());
 				}
 			}
 		}
@@ -93,10 +95,11 @@ public class MongoDBUtil {
 				String filter = "{\"_id\": \""+exist.get("_id")+"\"}";
 				Document newData = documents.get(index.get(exist.get("_id")));
 				UpdateResult update = replaceOne((Bson) JSON.parse(filter), newData, mongoURI, dbName, collectionName);
-				replaced += 1;//update.getModifiedCount();//2.6以上才支持
+//				replaced += 1;//update.getModifiedCount();//2.6以上才支持
+				replaced += update.getModifiedCount();//2.6以上才支持
 			}
 			if (replaced > 0)
-				System.out.println(replaced + "条记录已被更新");
+				logger.info(replaced + "条记录已被更新");
 		}
 	}
 	

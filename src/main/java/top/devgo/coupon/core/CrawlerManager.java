@@ -3,6 +3,7 @@ package top.devgo.coupon.core;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.log4j.Logger;
 
 import top.devgo.coupon.core.task.Task;
 
@@ -21,6 +23,7 @@ import top.devgo.coupon.core.task.Task;
  *
  */
 public class CrawlerManager {
+	private static Logger logger = Logger.getLogger(CrawlerManager.class.getName());
 	
 	/**
 	 * 线程安全的优先级队列，用来存放task
@@ -83,14 +86,14 @@ public class CrawlerManager {
 						int tasks = taskQueue.size();
 						int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
 						if (tasks < 1) {
-							System.out.println("暂无新任务，尚有"+workingThread+"个任务在执行。");
+							logger.info("暂无新任务，尚有"+workingThread+"个任务在执行。");
 						}else{
 							int jobs = (int) Math.min(tasks, Math.round((config.getMaxCrawlers() - workingThread) * 1.2));//提供当前空余worker数1.2倍的任务
 							for (int i = 0; i < jobs; i++) {
 								Task task = taskQueue.poll();
 								crawlerThreadPool.execute(new Crawler(httpclient, task, self));
 							}
-							System.out.println("新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
+							logger.info("新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
 						}
 						sleep(config.getTaskScanInterval());
 					}
@@ -110,6 +113,10 @@ public class CrawlerManager {
 			return;
 		}
 		
+		for (Task task : taskQueue) {
+			logger.info("未执行task："+task.toString());
+		}
+		
 		started = false;
 		waitUntilFinish(1L);
 	}
@@ -121,6 +128,12 @@ public class CrawlerManager {
 //		}
 		try {
 			if (!crawlerThreadPool.awaitTermination(timeout, TimeUnit.MINUTES)) {
+				
+				BlockingQueue<Runnable> tasks = ((ThreadPoolExecutor)crawlerThreadPool).getQueue();
+				for (Runnable task : tasks) {
+					logger.info("停止或取消task："+task.toString());
+				}
+				
 				crawlerThreadPool.shutdownNow();
 			}
 			httpclient.close();

@@ -146,6 +146,11 @@ public class SMZDMTask extends TaskBase {
 		return newTasks;
 	}
 
+	@Override
+	public String toString() {
+		return "SMZDMTask [timesort=" + timesort + ", stopDate=" + stopDate
+				+ ", mongoURI=" + mongoURI + ", dbName=" + dbName + "]";
+	}
 
 	public String getTimesort() {
 		return timesort;

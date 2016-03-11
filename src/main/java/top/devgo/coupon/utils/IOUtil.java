@@ -200,14 +200,13 @@ public class IOUtil {
 	/**
 	 * 关闭字符流
 	 * 
-	 * @param reader
+	 * @param closeable
 	 */
-	public static void close(Reader reader) {
+	public static void close(Closeable closeable) {
 		try {
-			if (reader != null)
-				reader.close();
+			if (closeable != null)
+				closeable.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

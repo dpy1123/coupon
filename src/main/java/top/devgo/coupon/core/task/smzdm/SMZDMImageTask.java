@@ -106,6 +106,12 @@ public class SMZDMImageTask extends TaskBase {
 	}
 
 
+	@Override
+	public String toString() {
+		return "SMZDMImageTask [fetchUrl=" + fetchUrl + ", dataId=" + dataId
+				+ ", mongoURI=" + mongoURI + ", dbName=" + dbName + "]";
+	}
+
 	public String getMongoURI() {
 		return mongoURI;
 	}

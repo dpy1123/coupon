@@ -106,7 +106,7 @@ public class SMZDM2 {
 				mapper.configure(Feature.ALLOW_SINGLE_QUOTES, true);
 				
 //				ObjectMapper mapper = new ObjectMapper();
-				//2016-3-19: 用这种方式解析最好
+				//2016-3-19: 用这种方式解析最好，对象嵌套完整。如果要高效率可以用树形解析，只获取要的数据，便于减少嵌套层级。
 				List<Map<String, Object>> lists = mapper.readValue(htmlStr, new TypeReference<List<Map<String, Object>>>() { } );
 				System.out.println(lists.size());
 				

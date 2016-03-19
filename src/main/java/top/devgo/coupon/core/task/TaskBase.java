@@ -85,13 +85,15 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 			root = mapper.readTree(jsonString);
 			for (int i = 0; i < root.size(); i++) {
 				JsonNode item = root.get(i);
-				Map<String, String> map = new HashMap<String, String>();
-				Iterator<Entry<String, JsonNode>> it = item.fields();
-				while (it.hasNext()) {
-					Entry<String, JsonNode> entry = (Entry<String, JsonNode>) it.next();
-					map.put(entry.getKey(), entry.getValue().asText());
+				if(item != null){
+					Map<String, String> map = new HashMap<String, String>();
+					Iterator<Entry<String, JsonNode>> it = item.fields();
+					while (it.hasNext()) {
+						Entry<String, JsonNode> entry = (Entry<String, JsonNode>) it.next();
+						map.put(entry.getKey(), entry.getValue().asText());
+					}
+					data.add(map);
 				}
-				data.add(map);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

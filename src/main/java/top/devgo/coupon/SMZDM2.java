@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.ansj.app.keyword.KeyWordComputer;
@@ -27,6 +28,7 @@ import org.nlpcn.commons.lang.tire.GetWord;
 import org.nlpcn.commons.lang.util.StringUtil;
 
 import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -103,9 +105,10 @@ public class SMZDM2 {
 				mapper.configure(Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;  
 				mapper.configure(Feature.ALLOW_SINGLE_QUOTES, true);
 				
-//				JavaType javaType = mapper.getTypeFactory().constructParametrizedType(List.class, List.class, ZDMItem.class);
-//				List<ZDMItem> lists = mapper.readValue(htmlStr, javaType);
-//				System.out.println(lists.size());
+//				ObjectMapper mapper = new ObjectMapper();
+				//2016-3-19: 用这种方式解析最好
+				List<Map<String, Object>> lists = mapper.readValue(htmlStr, new TypeReference<List<Map<String, Object>>>() { } );
+				System.out.println(lists.size());
 				
 				JsonNode root = mapper.readTree(htmlStr);
 				System.out.println(root.size());

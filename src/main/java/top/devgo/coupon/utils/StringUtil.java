@@ -89,4 +89,35 @@ public class StringUtil {
         }
  
     }
+    
+    /**
+     * Levenshtein Distance 算法实现 
+     * @param source
+     * @param target
+     * @return 两个字符串的编辑距离
+     */
+	public static int editDistance(String source, String target) {
+		int i, j, MAX_STRING_LEN = Math.max(source.length(), target.length())+1;
+		int d[][] = new int[MAX_STRING_LEN][MAX_STRING_LEN];
+
+		for (i = 0; i <= source.length(); i++)
+			d[i][0] = i;
+		for (j = 0; j <= target.length(); j++)
+			d[0][j] = j;
+
+		for (i = 1; i <= source.length(); i++) {
+			for (j = 1; j <= target.length(); j++) {
+				if (source.charAt(i - 1) == target.charAt(j - 1)) {
+					d[i][j] = d[i - 1][j - 1]; // 不需要编辑操作
+				} else {
+					int edIns = d[i][j - 1] + 1; // source 插入字符
+					int edDel = d[i - 1][j] + 1; // source 删除字符
+					int edRep = d[i - 1][j - 1] + 1; // source 替换字符
+					d[i][j] = Math.min(Math.min(edIns, edDel), edRep);
+				}
+			}
+		}
+		return d[source.length()][target.length()];
+	}
+	
 }

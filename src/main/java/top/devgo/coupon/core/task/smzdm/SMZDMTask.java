@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.log4j.Logger;
 
 import top.devgo.coupon.core.page.Page;
 import top.devgo.coupon.core.task.Task;
@@ -18,6 +19,7 @@ import top.devgo.coupon.utils.MongoDBUtil;
 import top.devgo.coupon.utils.TextUtil;
 
 public class SMZDMTask extends TaskBase {
+	private static Logger logger = Logger.getLogger(SMZDMTask.class.getName());
 
 	private String timesort;
 	private String stopDate;
@@ -152,16 +154,25 @@ public class SMZDMTask extends TaskBase {
 					newTasks.add(task);
 				}
 			} catch (ParseException e) {
-				e.printStackTrace();
+				logger.error(e);
 			}
+		}else{
+			//如果json解析失败，导致上面的data.size()=0，调整timesort并重新添加任务
+			long newTimeSort = Long.parseLong(timesort) - 5*1000;//减少5s
+			SMZDMTask task = new SMZDMTask(this.priority, String.valueOf(newTimeSort), this.stopDate, this.mongoURI, this.dbName, this.updateRecord, this.fetchComment);
+			newTasks.add(task);
+			logger.info("抓取 "+this+" data=0, 调整timesort重试.");
 		}
 		return newTasks;
 	}
 
+
 	@Override
 	public String toString() {
 		return "SMZDMTask [timesort=" + timesort + ", stopDate=" + stopDate
-				+ ", mongoURI=" + mongoURI + ", dbName=" + dbName + "]";
+				+ ", mongoURI=" + mongoURI + ", dbName=" + dbName
+				+ ", updateRecord=" + updateRecord + ", fetchComment="
+				+ fetchComment + "]";
 	}
 
 	public String getTimesort() {

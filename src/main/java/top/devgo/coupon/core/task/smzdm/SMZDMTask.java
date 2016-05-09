@@ -23,7 +23,8 @@ public class SMZDMTask extends TaskBase {
 	private String stopDate;
 	private String mongoURI;
 	private String dbName;
-	
+	private boolean updateRecord;//是否更新已有的记录
+	private boolean fetchComment;//是否抓取相关的评论
 	
 	/**
 	 * 初始化smzdm首页抓取任务
@@ -32,13 +33,18 @@ public class SMZDMTask extends TaskBase {
 	 * @param stopDate 抓取结束日期 "2015-12-01 00:00:00"
 	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
 	 * @param dbName
+	 * @param updateRecord 是否更新已有的记录
+	 * @param fetchComment 是否抓取相关的评论
 	 */
-	public SMZDMTask(int priority, String timesort, String stopDate, String mongoURI, String dbName) {
+	public SMZDMTask(int priority, String timesort, String stopDate, String mongoURI, String dbName, 
+			boolean updateRecord, boolean fetchComment) {
 		super(priority);
 		this.timesort = timesort;
 		this.stopDate = stopDate;
 		this.mongoURI = mongoURI;
 		this.dbName = dbName;
+		this.updateRecord = updateRecord;
+		this.fetchComment = fetchComment;
 	}
 	
 	/**
@@ -46,9 +52,11 @@ public class SMZDMTask extends TaskBase {
 	 * @param timesort 时间戳
 	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
 	 * @param dbName
+	 * @param updateRecord 是否更新已有的记录
+	 * @param fetchComment 是否抓取相关的评论
 	 */
-	public SMZDMTask(String timesort, String mongoURI, String dbName) {
-		this(1, timesort, DateUtil.getDateString(DateUtil.getBeginOfDay(new Date())), mongoURI, dbName);
+	public SMZDMTask(String timesort, String mongoURI, String dbName, boolean updateRecord, boolean fetchComment) {
+		this(timesort, DateUtil.getDateString(DateUtil.getBeginOfDay(new Date())), mongoURI, dbName, updateRecord, fetchComment);
 	}
 	
 	/**
@@ -57,9 +65,11 @@ public class SMZDMTask extends TaskBase {
 	 * @param stopDate 抓取结束日期 "2015-12-01 00:00:00"
 	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
 	 * @param dbName
+	 * @param updateRecord 是否更新已有的记录
+	 * @param fetchComment 是否抓取相关的评论
 	 */
-	public SMZDMTask(String timesort, String stopDate, String mongoURI, String dbName) {
-		this(1, timesort, stopDate, mongoURI, dbName);
+	public SMZDMTask(String timesort, String stopDate, String mongoURI, String dbName, boolean updateRecord, boolean fetchComment) {
+		this(1, timesort, stopDate, mongoURI, dbName,  updateRecord, fetchComment);
 	}
 	
 
@@ -103,7 +113,7 @@ public class SMZDMTask extends TaskBase {
 		for (Map<String, String> d : data) {
 			d.put("_id", d.get("article_id"));
 		}
-		MongoDBUtil.insertMany(data, true, this.mongoURI, this.dbName, "smzdm_data");
+		MongoDBUtil.insertMany(data, this.updateRecord, this.mongoURI, this.dbName, "smzdm_data");
 	}
 
 
@@ -114,11 +124,13 @@ public class SMZDMTask extends TaskBase {
 		
 		
 		for (int i = 0; i < data.size(); i++) {
-			//增加相应的评论的抓取任务
-			String commentUrl = data.get(i).get("article_url");//http://www.smzdm.com/p/744743
-			String productId = data.get(i).get("article_id");//744743
-			SMZDMCommentTask commentTask = new SMZDMCommentTask(this.priority+1, productId, commentUrl+"/p1", this.mongoURI, this.dbName);
-			newTasks.add(commentTask);
+			if (fetchComment) {
+				//增加相应的评论的抓取任务
+				String commentUrl = data.get(i).get("article_url");//http://www.smzdm.com/p/744743
+				String productId = data.get(i).get("article_id");//744743
+				SMZDMCommentTask commentTask = new SMZDMCommentTask(this.priority+1, productId, commentUrl+"/p1", this.mongoURI, this.dbName, this.updateRecord);
+				newTasks.add(commentTask);
+			}
 			//抓取图片
 //			String picUrl = data.get(i).get("article_pic");
 //			newTasks.add(new SMZDMImageTask(picUrl, productId, this.mongoURI, this.dbName));
@@ -136,7 +148,7 @@ public class SMZDMTask extends TaskBase {
 			String article_date = data.get(pos).get("article_date_full");
 			try {
 				if(DateUtil.getDateFromString(article_date).after(DateUtil.getDateFromString(this.stopDate))){//
-					SMZDMTask task = new SMZDMTask(this.priority, timesort, this.stopDate, this.mongoURI, this.dbName);
+					SMZDMTask task = new SMZDMTask(this.priority, timesort, this.stopDate, this.mongoURI, this.dbName, this.updateRecord, this.fetchComment);
 					newTasks.add(task);
 				}
 			} catch (ParseException e) {

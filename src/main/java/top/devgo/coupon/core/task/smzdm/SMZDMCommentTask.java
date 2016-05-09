@@ -26,6 +26,7 @@ public class SMZDMCommentTask extends TaskBase {
 	private String url;
 	private String mongoURI;
 	private String dbName;
+	private boolean updateRecord;//是否更新已有的记录
 	
 	private int currentPage = 0;
 	private int totalPage = 0;
@@ -42,13 +43,15 @@ public class SMZDMCommentTask extends TaskBase {
 	 * @param url "http://www.smzdm.com/p/744723/p1"
 	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
 	 * @param dbName
+	 * @param updateRecord 是否更新已有的记录
 	 */
-	public SMZDMCommentTask(int priority, String productId, String url, String mongoURI, String dbName) {
+	public SMZDMCommentTask(int priority, String productId, String url, String mongoURI, String dbName, boolean updateRecord) {
 		super(priority);
 		this.productId = productId;
 		this.url = url;
 		this.mongoURI = mongoURI;
 		this.dbName = dbName;
+		this.updateRecord = updateRecord;
 	}
 	
 	/**
@@ -59,7 +62,7 @@ public class SMZDMCommentTask extends TaskBase {
 	 * @param dbName
 	 */
 	public SMZDMCommentTask(String productId, String url, String mongoURI, String dbName) {
-		this(1, productId, url, mongoURI, dbName);
+		this(1, productId, url, mongoURI, dbName, false);
 	}
 	
 	public HttpUriRequest buildRequest() {
@@ -153,7 +156,7 @@ public class SMZDMCommentTask extends TaskBase {
 		if(this.currentPage < this.totalPage){
 			int p = this.currentPage+1;
 			String newUrl = this.url.substring(0, this.url.lastIndexOf("/p"+currentPage))+"/p"+p;
-			SMZDMCommentTask task = new SMZDMCommentTask(this.priority, this.productId, newUrl, this.mongoURI, this.dbName);
+			SMZDMCommentTask task = new SMZDMCommentTask(this.priority, this.productId, newUrl, this.mongoURI, this.dbName, this.updateRecord);
 			newTasks.add(task);
 		}
 		return newTasks;

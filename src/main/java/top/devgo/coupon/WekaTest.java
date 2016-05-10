@@ -170,15 +170,16 @@ public class WekaTest {
 		settings.setNullValue("?");
 		CsvWriter writer = new CsvWriter(outputWriter, settings);
 		
-		int views=0;
+//		int views=0;
 		FindIterable<Document> iterable = MongoDBUtil.find((Bson) JSON.parse("{'user':'dpy1123'}"), mongodbUrl, dbName, "view_log");
 		HashMap<String, Object> viewResult = new HashMap<String, Object>();
 		for (Document document : iterable) {
-			views++;
+//			views++;
 			viewResult.put(document.getString("article_id"), document.get("action"));
 		}
-		System.out.println(views);
-		System.out.println(viewResult.size());
+//		System.out.println(views);
+//		System.out.println(viewResult.size());
+		System.out.println("view_log记录数: "+viewResult.size());
 		
 //		String[] id = viewResult.keySet().toArray(new String[0]);
 //		String ids = "";
@@ -223,7 +224,7 @@ public class WekaTest {
 			}
 		}
 		writer.close();
-		System.out.println(datas);
+		System.out.println("训练集size: "+datas);
 		
 		//没有data匹配的view_log
 		System.out.println("没有data匹配的view_log: "+viewResult);

@@ -13,16 +13,12 @@ import org.bson.conversions.Bson;
 import top.devgo.coupon.utils.MongoDBUtil;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
-import weka.classifiers.trees.J48;
 import weka.core.Attribute;
 import weka.core.FastVector;
-import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.Utils;
 import weka.core.converters.CSVLoader;
 import weka.core.converters.ConverterUtils.DataSink;
-import weka.core.converters.ConverterUtils.DataSource;
-import weka.filters.Filter;
-import weka.filters.supervised.instance.SMOTE;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.util.JSON;
@@ -37,6 +33,7 @@ public class WekaTest {
 		buildTrainingCsvFile("train.csv");
 		buildUnlabeledCsvFile("unlabeled.csv");
 		
+//*		
 		Classifier cf = evaluateClassifier("train.csv");
 		
 		// load unlabeled data and set class attribute
@@ -63,16 +60,20 @@ public class WekaTest {
 	    for (int i = 0; i < data.numInstances(); i++) {
 	    	try {
 				double clsLabel = cf.classifyInstance(data.instance(i));
-				if(clsLabel>0)System.out.println(clsLabel);
 				result.instance(i).setClassValue(clsLabel);
+	    		
+	    		double[] dist = cf.distributionForInstance(data.instance(i));
+	    		System.out.print((i+1) + " - ");
+	    		System.out.print(data.instance(i).toString(data.classIndex()) + " - ");
+	    		System.out.print(data.classAttribute().value((int) clsLabel) + " - ");
+	    		System.out.println(Utils.arrayToString(dist));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
     	}
     	// save newly labeled data
-    	DataSink.write("labeled.csv", result);
-	    
-		
+    	DataSink.write("labeled.csv", result);	    
+//*/
 	}
 
 	private static Classifier evaluateClassifier(String path) throws IOException,
@@ -107,8 +108,8 @@ public class WekaTest {
 	    Instances filteredData = data;
 	    
 //	    Classifier cf  = (Classifier) Class.forName("weka.classifiers.trees.RandomForest").newInstance(); 
-	    Classifier cf  = (Classifier) Class.forName("weka.classifiers.trees.J48").newInstance(); 
-//	    Classifier cf  = (Classifier) Class.forName("weka.classifiers.bayes.NaiveBayes").newInstance(); 
+//	    Classifier cf  = (Classifier) Class.forName("weka.classifiers.trees.J48").newInstance(); 
+	    Classifier cf  = (Classifier) Class.forName("weka.classifiers.bayes.NaiveBayes").newInstance(); 
 	    cf.buildClassifier(filteredData);
 	    
 	    Evaluation eval = new Evaluation(filteredData);
@@ -129,7 +130,7 @@ public class WekaTest {
 		CsvWriter writer = new CsvWriter(outputWriter, settings);
 		
 		
-		FindIterable<Document> it =  MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-03-09'}}"), mongodbUrl, dbName, "smzdm_data")
+		FindIterable<Document> it =  MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-05-10'}}"), mongodbUrl, dbName, "smzdm_data")
 				.sort((Bson) JSON.parse("{'create_date':-1}"))
 				.limit(20);
 		
@@ -143,6 +144,9 @@ public class WekaTest {
 			document.remove("article_pic_style");
 			document.remove("article_content");
 			document.remove("article_content_all");
+			
+			document.remove("category_layer");
+			document.remove("gtm");
 			
 			// ' % 这两个要transcode掉 否则weka报错
 			for (String key : document.keySet()) {
@@ -183,34 +187,45 @@ public class WekaTest {
 //			if(i<id.length-1) ids+=",";
 //		}
 //		String query = "{'_id':{$in: ["+ids+"]}}";
-//		FindIterable<Document> it = MongoDBUtil.find((Bson) JSON.parse(query), mongodbUrl, dbName, "smzdm_data");
+////		FindIterable<Document> it = MongoDBUtil.find((Bson) JSON.parse(query), mongodbUrl, dbName, "smzdm_data");
 //		FindIterable<Document> it = MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-02-18'},'article_channel':{$nin:['资讯','原创']}}"),
-		FindIterable<Document> it = MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-02-18'}}"),
+		FindIterable<Document> it = MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-01-01'}}"),
 				mongodbUrl, dbName, "smzdm_data");
 		
 		boolean header = false;
+		int datas = 0;
 		for (Document document : it) {
 			String action = (String) viewResult.get(document.getString("article_id"));
-			document.append("action", action==null?"normal":action);
+			if(action != null){
+				//去掉normal
+				viewResult.remove(document.getString("article_id"));
 			
-			document.remove("article_pic");
-			document.remove("article_pic_local");
-			document.remove("article_pic_style");
-			document.remove("article_content");
-			document.remove("article_content_all");
-			
-			// ' % 这两个要transcode掉 否则weka报错
-			for (String key : document.keySet()) {
-				document.put(key, document.getString(key).replaceAll("'", " ").replaceAll("%", "-"));
+				document.append("action", action==null?"normal":action);
+				
+				document.remove("article_pic");
+				document.remove("article_pic_local");
+				document.remove("article_pic_style");
+				document.remove("article_content");
+				document.remove("article_content_all");
+				
+				// ' % 这两个要transcode掉 否则weka报错
+				for (String key : document.keySet()) {
+					document.put(key, document.getString(key).replaceAll("'", " ").replaceAll("%", "-"));
+				}
+				
+				if(!header){
+					writer.writeHeaders(document.keySet());
+					header = true;
+				}
+	
+				writer.writeRow(document);
+				datas++;
 			}
-			
-			if(!header){
-				writer.writeHeaders(document.keySet());
-				header = true;
-			}
-			if(action!=null)//去掉normal
-			writer.writeRow(document);
 		}
 		writer.close();
+		System.out.println(datas);
+		
+		//没有data匹配的view_log
+		System.out.println("没有data匹配的view_log: "+viewResult);
 	}
 }

@@ -11,11 +11,15 @@ import java.util.Map.Entry;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.log4j.Logger;
+
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import top.devgo.coupon.core.page.Page;
+import top.devgo.coupon.utils.JsonUtil;
 
 /**
  * 所有业务Task类继承本类
@@ -24,6 +28,8 @@ import top.devgo.coupon.core.page.Page;
  */
 public abstract class TaskBase implements Task, Comparable<Task> {
 
+	private static Logger logger = Logger.getLogger(TaskBase.class.getName());
+	
 	protected int priority;//优先级
 	
 	public TaskBase(int priority) {
@@ -42,7 +48,7 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 			try {
 				page.load(entity);
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error("", e);
 			}
 		}
 		return page;
@@ -83,6 +89,20 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 		JsonNode root = null;
 		try {
 			root = mapper.readTree(jsonString);
+		} catch (IOException e) {
+			if (e instanceof JsonParseException) {
+				logger.info("jackson json解析报错: "+e+" ，尝试使用 JsonUtil.formateJsonArrays 解析。");
+				try {
+					String after = JsonUtil.formateJsonArrays(jsonString);
+					root = mapper.readTree(after);
+				} catch (Exception e1) {
+					logger.error("解析失败： str= \r\n"+jsonString, e1);
+				}
+			}else {
+				logger.error(e);
+			}
+		}
+		if (root != null) {
 			for (int i = 0; i < root.size(); i++) {
 				JsonNode item = root.get(i);
 				if(item != null){
@@ -95,8 +115,6 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 					data.add(map);
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 		return data;
 	}
@@ -112,8 +130,8 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 		if(type != null && type.startsWith("text/html")){//text/html;charset=utf-8;
 			try {
 				htmlStr = new String(page.getContentData(), page.getContentCharset());
-			} catch (UnsupportedEncodingException e1) {
-				e1.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				logger.error("", e);
 			}
 		}
 		return htmlStr;

@@ -1,14 +1,23 @@
 package top.devgo.coupon.core.task.smzdm;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.log4j.Logger;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import top.devgo.coupon.core.page.Page;
 import top.devgo.coupon.core.task.Task;
@@ -73,7 +82,6 @@ public class SMZDMTask extends TaskBase {
 	public SMZDMTask(String timesort, String stopDate, String mongoURI, String dbName, boolean updateRecord, boolean fetchComment) {
 		this(1, timesort, stopDate, mongoURI, dbName,  updateRecord, fetchComment);
 	}
-	
 
 	
 	public HttpUriRequest buildRequest() {
@@ -118,12 +126,48 @@ public class SMZDMTask extends TaskBase {
 		MongoDBUtil.insertMany(data, this.updateRecord, this.mongoURI, this.dbName, "smzdm_data");
 	}
 
+	private List<Map<String, String>> extractData(String jsonString){
+		List<Map<String, String>> data = new ArrayList<Map<String,String>>();
+		ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
+		mapper.configure(Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;  
+		mapper.configure(Feature.ALLOW_SINGLE_QUOTES, true);
+		JsonNode root = null;
+		try {
+			root = mapper.readTree(jsonString);
+		} catch (IOException e) {
+			if (e instanceof JsonParseException) {
+				logger.info("jackson json解析报错: "+e+" ，尝试使用 JsonUtil.formateJsonArrays 解析。");
+				try {
+					String after = JsonUtil.formateJsonArrays(jsonString);
+					root = mapper.readTree(after);
+				} catch (Exception e1) {
+					logger.error("解析失败： str= \r\n"+jsonString, e1);
+				}
+			}else {
+				logger.error(e);
+			}
+		}
+		if (root != null) {
+			for (int i = 0; i < root.size(); i++) {
+				JsonNode item = root.get(i);
+				if(item != null){
+					Map<String, String> map = new HashMap<String, String>();
+					Iterator<Entry<String, JsonNode>> it = item.fields();
+					while (it.hasNext()) {
+						Entry<String, JsonNode> entry = (Entry<String, JsonNode>) it.next();
+						map.put(entry.getKey(), entry.getValue().asText());
+					}
+					data.add(map);
+				}
+			}
+		}
+		return data;
+	}
 
 	@Override
 	protected List<Task> buildNewTask(Page page) {
 		List<Map<String, String>> data = page.getData();
 		List<Task> newTasks = new ArrayList<Task>();
-		
 		
 		for (int i = 0; i < data.size(); i++) {
 			if (fetchComment) {

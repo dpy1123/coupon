@@ -11,6 +11,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import top.devgo.coupon.utils.MongoDBUtil;
+import top.devgo.coupon.utils.PriceUtil;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.core.Attribute;
@@ -31,9 +32,9 @@ public class WekaTest {
 	
 	public static void main(String[] args) throws IOException, Exception {
 		buildTrainingCsvFile("train.csv");
-		buildUnlabeledCsvFile("unlabeled.csv");
+//		buildUnlabeledCsvFile("unlabeled.csv");
 		
-//*		
+/*		
 		Classifier cf = evaluateClassifier("train.csv");
 		
 		// load unlabeled data and set class attribute
@@ -198,9 +199,10 @@ public class WekaTest {
 		for (Document document : it) {
 			String action = (String) viewResult.get(document.getString("article_id"));
 			if(action != null){
-				//去掉normal
 				viewResult.remove(document.getString("article_id"));
 			
+				document.append("real_price", PriceUtil.getRealPrice(document.getString("article_price")));
+				//去掉normal
 				document.append("action", action==null?"normal":action);
 				
 				document.remove("article_pic");

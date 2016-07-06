@@ -80,25 +80,22 @@ public class CrawlerManager {
 		initStage(config);
 		
 		taskManager = new Thread(new Runnable() {
+			@Override
 			public void run() {
-				try {
-					while (started) {
-						int tasks = taskQueue.size();
-						int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
-						if (tasks < 1) {
-							logger.info("暂无新任务，尚有"+workingThread+"个任务在执行。");
-						}else{
-							int jobs = (int) Math.min(tasks, Math.round((config.getMaxCrawlers() - workingThread) * 1.2));//提供当前空余worker数1.2倍的任务
-							for (int i = 0; i < jobs; i++) {
-								Task task = taskQueue.poll();
-								crawlerThreadPool.execute(new Crawler(httpclient, task, self));
-							}
-							logger.info("新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
+				while (started) {
+					int tasks = taskQueue.size();
+					int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
+					if (tasks < 1) {
+						logger.info("暂无新任务，尚有"+workingThread+"个任务在执行。");
+					}else{
+						int jobs = (int) Math.min(tasks, Math.round((config.getMaxCrawlers() - workingThread) * 1.2));//提供当前空余worker数1.2倍的任务
+						for (int i = 0; i < jobs; i++) {
+							Task task = taskQueue.poll();
+							crawlerThreadPool.execute(new Crawler(httpclient, task, self));
 						}
-						sleep(config.getTaskScanInterval());
+						logger.info("新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
+					sleep(config.getTaskScanInterval());
 				}
 			}
 			
@@ -139,15 +136,19 @@ public class CrawlerManager {
 			httpclient.close();
 			connectionManager.close();
 		} catch (IOException e) {
+			logger.error("", e);
 		} catch (InterruptedException e) {
+			logger.warn("Interrupted!", e);
+			Thread.currentThread().interrupt();
 		}
 	}
 	
 	protected void sleep(int seconds) {
 		try {
-			Thread.sleep(seconds * 1000);
+			Thread.sleep(seconds * 1000L);
 		} catch (InterruptedException ignored) {
-			// Do nothing
+			logger.warn("Interrupted!", ignored);
+			Thread.currentThread().interrupt();
 		}
 	}
 	

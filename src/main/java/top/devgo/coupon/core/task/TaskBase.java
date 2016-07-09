@@ -3,6 +3,7 @@ package top.devgo.coupon.core.task;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.log4j.Logger;
@@ -98,6 +99,28 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	 */
 	public int compareTo(Task o) {
 		return this.getPriority()-o.getPriority();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + priority;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TaskBase other = (TaskBase) obj;
+		if (priority != other.priority)
+			return false;
+		return true;
 	}
 
 }

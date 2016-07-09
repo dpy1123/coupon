@@ -31,7 +31,6 @@ public class IOUtil {
 	}
 
 	private static BufferedReader getReader(File file, String charEncoding) throws FileNotFoundException, UnsupportedEncodingException {
-		// TODO Auto-generated method stub
 		InputStream is = new FileInputStream(file);
 		return new BufferedReader(new InputStreamReader(is, charEncoding));
 	}
@@ -95,7 +94,6 @@ public class IOUtil {
 			reader = IOUtil.getReader(is, charEncoding);
 			return getContent(reader);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			if (reader != null) {
@@ -185,7 +183,6 @@ public class IOUtil {
 	 * @throws java.io.FileNotFoundException
 	 */
 	public static void WriterObj(String path, Serializable hm) throws FileNotFoundException, IOException {
-		// TODO Auto-generated method stub
 		ObjectOutputStream objectOutputStream = null;
 		try {
 			objectOutputStream = new ObjectOutputStream(new FileOutputStream(path));
@@ -237,7 +234,6 @@ public class IOUtil {
 				os.close();
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -258,7 +254,9 @@ public class IOUtil {
 			}
 			fos.flush();
 		} finally {
-			fos.close();
+			if (fos != null) {
+				fos.close();
+		    }
 		}
 	}
 

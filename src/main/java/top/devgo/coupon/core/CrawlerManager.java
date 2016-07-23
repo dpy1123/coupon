@@ -1,6 +1,7 @@
 package top.devgo.coupon.core;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -87,6 +88,9 @@ public class CrawlerManager {
 					int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
 					if (tasks < 1) {
 						logger.info("暂无新任务，尚有"+workingThread+"个任务在执行。");
+						if (workingThread < 1) {
+							stop();
+						}
 					}else{
 						int jobs = (int) Math.min(tasks, Math.round((config.getMaxCrawlers() - workingThread) * 1.2));//提供当前空余worker数1.2倍的任务
 						for (int i = 0; i < jobs; i++) {
@@ -103,6 +107,7 @@ public class CrawlerManager {
 		});
 		taskManager.start();
 		
+		logger.info("started at: "+ new Date());
 	}
 
 	public void stop() {
@@ -115,7 +120,9 @@ public class CrawlerManager {
 		}
 		
 		started = false;
-		waitUntilFinish(1L);
+		waitUntilFinish(10L);
+		
+		logger.info("stoped at: "+ new Date());
 	}
 	
 	private void waitUntilFinish(long timeout) {
@@ -124,7 +131,7 @@ public class CrawlerManager {
 //			sleep(3);
 //		}
 		try {
-			if (!crawlerThreadPool.awaitTermination(timeout, TimeUnit.MINUTES)) {
+			if (!crawlerThreadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
 				
 				BlockingQueue<Runnable> tasks = ((ThreadPoolExecutor)crawlerThreadPool).getQueue();
 				for (Runnable task : tasks) {

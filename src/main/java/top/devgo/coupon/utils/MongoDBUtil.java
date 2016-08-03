@@ -21,11 +21,21 @@ import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
 
 /**
- *  <p>MongoDB的工具类 单例模式 <p>
- *  <p>MongoDB的Java驱动是线程安全的，对于一般的应用，只要一个Mongo实例即可，Mongo有个内置的连接池（池大小默认为10个）。
- *  
+ * <p>
+ * MongoDB的工具类 单例模式
+ * <p>
+ * <p>
+ * MongoDB的Java驱动是线程安全的，对于一般的应用，只要一个Mongo实例即可，Mongo有个内置的连接池（池大小默认为100个）。
+ * 在所有操作结束或者整个程序shutdown的时候调用MongoDBUtil.close()即可。
+ * <p>
+ * In general, users of this class will pick up all of the default options
+ * specified in MongoClientOptions . In particular, note that the default value
+ * of the connectionsPerHost option has been increased to 100 from the old
+ * default value of 10 used by the superceded Mongo class.
+ * <p>
+ * 
  * @author DD
- */  
+ */
 public class MongoDBUtil {
 	private static Logger logger = Logger.getLogger(MongoDBUtil.class.getName());
 	private static MongoClient mongoClient = null;
@@ -34,7 +44,9 @@ public class MongoDBUtil {
 	
 	/**
 	 * 得到一个单例的MongoClient对象
-	 * @param mongoClientURI 使用MongoClientURI初始化MongoClient。eg: "mongodb://localhost:27017,localhost:27018,localhost:27019"
+	 * @param mongoClientURI 使用MongoClientURI初始化MongoClient。
+	 * eg: 	replica-"mongodb://localhost:27017,localhost:27018,localhost:27019"
+	 * 		withAuth-"mongodb://username:password@ip:port/dbName"
 	 * @return
 	 */
 	public static synchronized MongoClient getMongoClient(String mongoClientURI){
@@ -44,6 +56,15 @@ public class MongoDBUtil {
 			mongoClient = new MongoClient(new MongoClientURI(mongoClientURI));
 		}
 		return mongoClient;
+	}
+	
+	/**
+	 * 在所有操作结束或者整个程序shutdown的时候调用。
+	 */
+	public static void close(){
+		if (mongoClient != null) {
+			mongoClient.close();
+		}
 	}
 	
 	/**

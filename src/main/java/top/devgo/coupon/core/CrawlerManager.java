@@ -17,6 +17,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
 
 import top.devgo.coupon.core.task.Task;
+import top.devgo.coupon.utils.MongoDBUtil;
 
 /**
  * crawler的主控类
@@ -142,6 +143,7 @@ public class CrawlerManager {
 			}
 			httpclient.close();
 			connectionManager.close();
+			MongoDBUtil.close();
 		} catch (IOException e) {
 			logger.error("", e);
 		} catch (InterruptedException e) {

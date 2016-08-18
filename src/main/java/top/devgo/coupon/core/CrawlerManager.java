@@ -152,9 +152,9 @@ public class CrawlerManager {
 		}
 	}
 	
-	protected void sleep(int seconds) {
+	protected void sleep(int mills) {
 		try {
-			Thread.sleep(seconds * 1000L);
+			Thread.sleep(mills);
 		} catch (InterruptedException ignored) {
 			logger.warn("Interrupted!", ignored);
 			Thread.currentThread().interrupt();

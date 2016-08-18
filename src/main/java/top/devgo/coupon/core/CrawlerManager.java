@@ -93,12 +93,12 @@ public class CrawlerManager {
 							stop();
 						}
 					}else{
-						int jobs = (int) Math.min(tasks, Math.round((config.getMaxCrawlers() - workingThread) * 1.2));//提供当前空余worker数1.2倍的任务
+						int jobs = Math.min(tasks, (config.getMaxCrawlers()-workingThread+1) * Math.max(2, (tasks/config.getTaskQueueCapacity())*(config.getTaskScanInterval()/1000)));//提供当前空余worker数2倍或更多倍的任务
 						for (int i = 0; i < jobs; i++) {
 							Task task = taskQueue.poll();
 							crawlerThreadPool.execute(new Crawler(httpclient, task, self));
 						}
-						logger.info("新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
+						logger.info("任务总数"+tasks+"，新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
 					}
 					sleep(config.getTaskScanInterval());
 				}
@@ -152,7 +152,7 @@ public class CrawlerManager {
 		}
 	}
 	
-	protected void sleep(int mills) {
+	protected void sleep(long mills) {
 		try {
 			Thread.sleep(mills);
 		} catch (InterruptedException ignored) {

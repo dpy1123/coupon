@@ -14,6 +14,11 @@
 按照view buy normal dislike分类，数据集不平衡，使用smote或cost-sensitive的方法感觉效果都不是很好；  
 暂时按照view buy dislike分类。  
 
+# 训练集
+整理好的csv数据集在data目录下  
+i148的最好结果是基于属性选择的决策树，正确率82%  
+i244的最好结果是朴素贝叶斯，正确率77%
+
 # TODO
-1.sysout用log替换掉，否则影响性能。  
+1.sysout用log替换掉，否则影响性能。√  
 2.增加schedule定时执行。

@@ -11,6 +11,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import top.devgo.coupon.utils.MongoDBUtil;
+import top.devgo.coupon.utils.PriceUtil;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.core.Attribute;
@@ -130,13 +131,15 @@ public class WekaTest {
 		CsvWriter writer = new CsvWriter(outputWriter, settings);
 		
 		
-		FindIterable<Document> it =  MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-05-10'}}"), mongodbUrl, dbName, "smzdm_data")
+		FindIterable<Document> it =  MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-08-10'}}"), mongodbUrl, dbName, "smzdm_data")
 				.sort((Bson) JSON.parse("{'create_date':-1}"))
 				.limit(20);
 		
 		
 		boolean header = false;
 		for (Document document : it) {
+			document.append("price", PriceUtil.getRealPrice(document.getString("article_price")));
+			
 			document.append("action", null);
 			
 			document.remove("article_pic");
@@ -147,6 +150,9 @@ public class WekaTest {
 			
 			document.remove("category_layer");
 			document.remove("gtm");
+			document.remove("article_channel_class");
+			document.remove("article_link_name");
+			document.remove("article_channel_note");
 			
 			// ' % 这两个要transcode掉 否则weka报错
 			for (String key : document.keySet()) {
@@ -201,6 +207,7 @@ public class WekaTest {
 				//去掉normal
 				viewResult.remove(document.getString("article_id"));
 			
+				document.append("price", PriceUtil.getRealPrice(document.getString("article_price")));
 				document.append("action", action==null?"normal":action);
 				
 				document.remove("article_pic");

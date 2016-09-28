@@ -153,7 +153,10 @@ public class WekaTest {
 			document.remove("article_channel_class");
 			document.remove("article_link_name");
 			document.remove("article_channel_note");
-			
+
+			document.remove("article_stock_note");
+			document.remove("mall_more_info");
+
 			// ' % 这两个要transcode掉 否则weka报错
 			for (String key : document.keySet()) {
 				if(document.getString(key)!=null)
@@ -215,7 +218,9 @@ public class WekaTest {
 				document.remove("article_pic_style");
 				document.remove("article_content");
 				document.remove("article_content_all");
-				
+
+				document.remove("is_out");
+
 				// ' % 这两个要transcode掉 否则weka报错
 				for (String key : document.keySet()) {
 					document.put(key, document.getString(key).replaceAll("'", " ").replaceAll("%", "-"));

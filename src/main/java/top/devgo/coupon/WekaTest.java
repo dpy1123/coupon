@@ -179,15 +179,11 @@ public class WekaTest {
 		settings.setNullValue("?");
 		CsvWriter writer = new CsvWriter(outputWriter, settings);
 		
-//		int views=0;
 		FindIterable<Document> iterable = MongoDBUtil.find((Bson) JSON.parse("{'user':'dpy1123'}"), mongodbUrl, dbName, "view_log");
 		HashMap<String, Object> viewResult = new HashMap<String, Object>();
 		for (Document document : iterable) {
-//			views++;
 			viewResult.put(document.getString("article_id"), document.get("action"));
 		}
-//		System.out.println(views);
-//		System.out.println(viewResult.size());
 		System.out.println("view_log记录数: "+viewResult.size());
 		
 //		String[] id = viewResult.keySet().toArray(new String[0]);
@@ -209,6 +205,7 @@ public class WekaTest {
 			if(action != null){
 				viewResult.remove(document.getString("article_id"));
 
+				document.append("price", PriceUtil.getRealPrice(document.getString("article_price")));
 				//去掉normal
 				document.append("action", action==null?"normal":action);
 				

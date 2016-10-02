@@ -30,9 +30,9 @@ public class Config {
 	
 	private List<Task> beginningTasks;
 	/**
-	 * 设置扫描task队列的时间间隔，默认10s
+	 * 设置扫描task队列的时间间隔，默认1000ms
 	 */
-	private int taskScanInterval = 10;
+	private int taskScanInterval = 1000;
 
 	public int getTaskQueueCapacity() {
 		return taskQueueCapacity;

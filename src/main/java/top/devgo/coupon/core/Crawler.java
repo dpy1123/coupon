@@ -4,18 +4,21 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.log4j.Logger;
+
 import top.devgo.coupon.core.task.Task;
+
 /**
  * crawl执行类
  * @author DD
  *
  */
 public class Crawler implements Runnable {
+	private static Logger logger = Logger.getLogger(Crawler.class.getName());
 	private CloseableHttpClient httpClient;
 	private Task task;
 	private CrawlerManager stage;
@@ -37,27 +40,23 @@ public class Crawler implements Runnable {
 		try {
 			response = httpClient.execute(request, new BasicHttpContext());
 			newTasks = task.process(response);
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("", e);
 		}finally{
 			if (response != null) {
 				try {
 					response.close();
 				} catch (IOException e) {
+					logger.error("", e);
 				}
 			}
 		}
 		
 		if (newTasks!=null) {
 			for (Iterator<Task> it = newTasks.iterator(); it.hasNext();) {
-				Task task = it.next();
-				stage.addTaskToQueue(task);
+				stage.addTaskToQueue(it.next());
 			}
 		}
 	}
-
-	
 
 }

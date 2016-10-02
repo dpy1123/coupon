@@ -1,11 +1,18 @@
 package top.devgo.coupon.utils;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * 文字编码转换的工具类
  * @author DD
  *
  */
 public class TextUtil {
+	private TextUtil() {
+	}
 	
 	/**
 	 * Unicode编码转换成中文<br>
@@ -16,7 +23,7 @@ public class TextUtil {
 	public static String decodeUnicode(String theString) {
 		char aChar;
 		int len = theString.length();
-		StringBuffer outBuffer = new StringBuffer(len);
+		StringBuilder outBuffer = new StringBuilder(len);
 		for (int x = 0; x < len;) {
 			aChar = theString.charAt(x++);
 			if (aChar == '\\') {
@@ -76,4 +83,42 @@ public class TextUtil {
 		}
 		return outBuffer.toString();
 	}
+	
+	/**
+	 * unicode转字符串
+	 * ps: 2016\\u5df4\\u9ece
+	 * @see top.devgo.coupon.utils.TextUtil#decodeUnicode decodeUnicode
+	 * @param unicode
+	 * @return
+	 */
+	public static String decodeUnicode2(String unicode) {
+		Charset set = Charset.forName("UTF-16");
+		Pattern p = Pattern.compile("\\\\u([0-9a-fA-F]{4})");
+		Matcher m = p.matcher(unicode);
+		int start = 0;
+		int start2;
+		StringBuilder sb = new StringBuilder();
+		while (m.find(start)) {
+			start2 = m.start();
+			if (start2 > start) {
+				String seg = unicode.substring(start, start2);
+				sb.append(seg);
+			}
+			String code = m.group(1);
+			int i = Integer.valueOf(code, 16);
+			byte[] bb = new byte[4];
+			bb[0] = (byte) ((i >> 8) & 0xFF);
+			bb[1] = (byte) (i & 0xFF);
+			ByteBuffer b = ByteBuffer.wrap(bb);
+			sb.append(String.valueOf(set.decode(b)).trim());
+			start = m.end();
+		}
+		start2 = unicode.length();
+		if (start2 > start) {
+			String seg = unicode.substring(start, start2);
+			sb.append(seg);
+		}
+		return sb.toString();
+	}
+
 }

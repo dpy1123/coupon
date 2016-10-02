@@ -11,6 +11,8 @@ import java.util.Date;
  *
  */
 public class DateUtil {
+	private DateUtil() {
+	}
 	
 	/**
 	 * 根据字符串生成时间
@@ -21,7 +23,7 @@ public class DateUtil {
 	public static Date getDateFromString(String timeStr) throws ParseException{
 		SimpleDateFormat dateFormat;
 		Calendar calendar = Calendar.getInstance();
-		Date date = null;
+		Date date;
 		switch (timeStr.length()) {
 		case 5://11:20
 			dateFormat = new SimpleDateFormat("HH:mm");
@@ -63,6 +65,12 @@ public class DateUtil {
 		return getDateString(date, "yyyy-MM-dd HH:mm:ss");
 	}
 	
+	/**
+	 * 
+	 * @param date
+	 * @param formatString
+	 * @return
+	 */
 	public static String getDateString(Date date, String formatString) {
 		if (date == null)
 			return null;

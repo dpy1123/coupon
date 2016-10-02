@@ -9,6 +9,10 @@ import java.util.regex.Pattern;
  *
  */
 public class StringUtil {
+	
+	private StringUtil() {
+	}
+	
 	/**
 	 * 判断字符串是否为空
 	 *
@@ -21,7 +25,7 @@ public class StringUtil {
 			return true;
 		}
 		for (int i = 0; i < strLen; i++) {
-			if (Character.isWhitespace(cs.charAt(i)) == false) {
+			if (!Character.isWhitespace(cs.charAt(i))) {
 				return false;
 			}
 		}
@@ -36,7 +40,6 @@ public class StringUtil {
 	 */
 	public static boolean isNotBlank(CharSequence cs) {
 		return !isBlank(cs);
-
 	}
 	
 
@@ -75,19 +78,12 @@ public class StringUtil {
         float count = 0;
         for (int i = 0; i < ch.length; i++) {
             char c = ch[i];
-            if (!Character.isLetterOrDigit(c)) {
-                if (!isChinese(c)) {
-                    count = count + 1;
-                }
+            if (!Character.isLetterOrDigit(c) && !isChinese(c)) {
+                count = count + 1;
             }
         }
         float result = count / chLength;
-        if (result > 0.4) {
-            return true;
-        } else {
-            return false;
-        }
- 
+        return (result > 0.4);
     }
     
     /**
@@ -120,4 +116,46 @@ public class StringUtil {
 		return d[source.length()][target.length()];
 	}
 	
+	
+	/**
+	 * Replaces every old substring with a new substring in the big string.
+	 * 与string.replaceAll相比，不是使用正则去匹配。
+	 * 
+	 * @param text
+	 *            The big string.
+	 * @param oldValue
+	 *            The old substring.
+	 * @param newValue
+	 *            The new substring.
+	 * @return The big string with all old substrings replaced with the new
+	 *         substring.
+	 */
+	public static String replaceAll(String text, String oldValue, String newValue) {
+		StringBuilder sb = new StringBuilder(text);
+		int index;
+		while ((index = sb.indexOf(oldValue)) != -1) {
+			sb.replace(index, index + oldValue.length(), newValue);
+		}
+		return sb.toString();
+	}
+	
+	/**
+	 * 
+	 * @param html
+	 * @return
+	 */
+	public static String html2text(String html) {
+		if (isBlank(html))
+			return html;
+
+		String dst = html;
+		dst = replaceAll(dst, "&lt", "<");
+		dst = replaceAll(dst, "&gt;", ">");
+		dst = replaceAll(dst, " ", "");
+		dst = replaceAll(dst, "<br>", "\n");
+		dst = replaceAll(dst, "<br/>", "\n");
+		dst = replaceAll(dst, "&nbsp;", " ");
+		dst = replaceAll(dst, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+		return dst;
+	}
 }

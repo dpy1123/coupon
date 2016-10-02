@@ -1,4 +1,6 @@
+.gitignore
 /bin/
 /target/
 /img/
 /.settings/
+/.idea/

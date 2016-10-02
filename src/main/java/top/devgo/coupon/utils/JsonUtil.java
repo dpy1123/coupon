@@ -18,6 +18,10 @@ import javax.script.ScriptException;
  *
  */
 public class JsonUtil {
+	
+	private JsonUtil() {
+	}
+	
 	/**
 	 * 将【内容】中的双引号 " 替换为 ' , 以确保jsonStr的正确解析<br> 
 	 * 不影响jsonStr key和value前后的 "
@@ -80,10 +84,10 @@ public class JsonUtil {
 		//如果可以的话 使用编译模式以提高执行效率
 		if (engine instanceof Compilable) {
 			Compilable compEngine = (Compilable)engine;
-			CompiledScript fun_str2jsonArr = compEngine.compile(str2jsonArr);
-			fun_str2jsonArr.eval();
-			CompiledScript fun_reformatArr = compEngine.compile(reformatArr);
-			fun_reformatArr.eval();
+			CompiledScript funStr2jsonArr = compEngine.compile(str2jsonArr);
+			funStr2jsonArr.eval();
+			CompiledScript funReformatArr = compEngine.compile(reformatArr);
+			funReformatArr.eval();
 		}else{
 		  	engine.eval(str2jsonArr);  
 			engine.eval(reformatArr);

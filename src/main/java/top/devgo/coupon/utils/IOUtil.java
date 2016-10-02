@@ -14,9 +14,12 @@ public class IOUtil {
 	public static final String GBK = "gbk";
 	public static final String TABLE = "\t";
 	public static final String LINE = "\n";
-	public static final byte[] TABBYTE = TABLE.getBytes();
-	public static final byte[] LINEBYTE = LINE.getBytes();
+	protected static final byte[] TABBYTE = TABLE.getBytes();
+	protected static final byte[] LINEBYTE = LINE.getBytes();
 
+	private IOUtil() {
+	}
+	
 	public static InputStream getInputStream(String path) {
 		try {
 			return new FileInputStream(path);

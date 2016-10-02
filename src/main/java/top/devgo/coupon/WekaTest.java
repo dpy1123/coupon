@@ -131,13 +131,15 @@ public class WekaTest {
 		CsvWriter writer = new CsvWriter(outputWriter, settings);
 		
 		
-		FindIterable<Document> it =  MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-05-10'}}"), mongodbUrl, dbName, "smzdm_data")
+		FindIterable<Document> it =  MongoDBUtil.find((Bson) JSON.parse("{'article_date_full':{$gt:'2016-08-10'}}"), mongodbUrl, dbName, "smzdm_data")
 				.sort((Bson) JSON.parse("{'create_date':-1}"))
 				.limit(20);
 		
 		
 		boolean header = false;
 		for (Document document : it) {
+			document.append("price", PriceUtil.getRealPrice(document.getString("article_price")));
+			
 			document.append("action", null);
 			
 			document.remove("article_pic");
@@ -148,7 +150,13 @@ public class WekaTest {
 			
 			document.remove("category_layer");
 			document.remove("gtm");
-			
+			document.remove("article_channel_class");
+			document.remove("article_link_name");
+			document.remove("article_channel_note");
+
+			document.remove("article_stock_note");
+			document.remove("mall_more_info");
+
 			// ' % 这两个要transcode掉 否则weka报错
 			for (String key : document.keySet()) {
 				if(document.getString(key)!=null)
@@ -200,8 +208,7 @@ public class WekaTest {
 			String action = (String) viewResult.get(document.getString("article_id"));
 			if(action != null){
 				viewResult.remove(document.getString("article_id"));
-			
-				document.append("real_price", PriceUtil.getRealPrice(document.getString("article_price")));
+
 				//去掉normal
 				document.append("action", action==null?"normal":action);
 				
@@ -210,7 +217,9 @@ public class WekaTest {
 				document.remove("article_pic_style");
 				document.remove("article_content");
 				document.remove("article_content_all");
-				
+
+				document.remove("is_out");
+
 				// ' % 这两个要transcode掉 否则weka报错
 				for (String key : document.keySet()) {
 					document.put(key, document.getString(key).replaceAll("'", " ").replaceAll("%", "-"));

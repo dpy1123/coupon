@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -101,8 +100,7 @@ public class SMZDMImageTask extends TaskBase {
 
 	@Override
 	protected List<Task> buildNewTask(Page page) {
-		List<Task> newTasks = new ArrayList<Task>(0);
-		return newTasks;
+		return null;
 	}
 
 

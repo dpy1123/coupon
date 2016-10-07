@@ -24,7 +24,8 @@ public class JsonUtil {
 	
 	/**
 	 * 将【内容】中的双引号 " 替换为 ' , 以确保jsonStr的正确解析<br> 
-	 * 不影响jsonStr key和value前后的 "
+	 * 不影响jsonStr key和value前后的 "<br> 
+	 * 【注意不要滥用，否则也会影响json解析】
 	 * @param jsonStr
 	 * @return
 	 */

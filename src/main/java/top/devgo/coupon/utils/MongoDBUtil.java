@@ -67,6 +67,7 @@ public class MongoDBUtil {
 		}
 	}
 	
+	
 	/**
 	 * 将data插入到mongodb中指定的collection中
 	 * @param data
@@ -75,18 +76,18 @@ public class MongoDBUtil {
 	 * @param dbName
 	 * @param collectionName
 	 */
-	public static void insertMany(List<Map<String, String>> data, boolean autoUpdate, String mongoURI, String dbName, String collectionName) {
+	public static <T> void insertMany(List<Map<String, T>> data, boolean autoUpdate, String mongoURI, String dbName, String collectionName) {
 		int dataSize = data.size();
 		if (dataSize <= 0) return;
 		
 		List<Document> documents = new ArrayList<Document>();
 		Map<String, Integer> index = new HashMap<String, Integer>();//<id, position in documents>
 		for (int i = 0; i < dataSize; i++) {
-			Map<String, String> pair = data.get(i);
+			Map<String, T> pair = data.get(i);
 			Document doc = new Document();
 			doc.putAll(pair);
 		    documents.add(doc);
-		    index.put(pair.get("_id"), i);
+		    index.put((String) pair.get("_id"), i);
 		}
 		try {
 			insertMany(documents, mongoURI, dbName, collectionName);

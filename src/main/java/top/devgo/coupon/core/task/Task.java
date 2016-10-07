@@ -12,6 +12,10 @@ import org.apache.http.client.methods.HttpUriRequest;
  */
 public interface Task{
 	
+	/**
+	 * 获得任务优先级，数字越大优先级越低
+	 * @return
+	 */
 	public int getPriority();
 
 	public HttpUriRequest buildRequest();

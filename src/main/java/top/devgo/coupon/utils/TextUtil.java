@@ -16,10 +16,12 @@ public class TextUtil {
 	
 	/**
 	 * Unicode编码转换成中文<br>
-	 * eg: "\u7b80\u4ecb" -> "中国"
+	 * eg: "\u7b80\u4ecb" -> "中国"<br>
+	 * 【这种方法有问题，复杂jsonstr有可能错误解析】用decodeUnicode2
 	 * @param theString
 	 * @return
 	 */
+	@Deprecated
 	public static String decodeUnicode(String theString) {
 		char aChar;
 		int len = theString.length();
@@ -87,7 +89,6 @@ public class TextUtil {
 	/**
 	 * unicode转字符串
 	 * ps: 2016\\u5df4\\u9ece
-	 * @see top.devgo.coupon.utils.TextUtil#decodeUnicode decodeUnicode
 	 * @param unicode
 	 * @return
 	 */

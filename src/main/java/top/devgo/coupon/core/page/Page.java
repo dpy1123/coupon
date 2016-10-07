@@ -2,6 +2,7 @@ package top.devgo.coupon.core.page;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class Page {
 	 */
 	private String contentCharset;
 	
-	private List<Map<String, String>> parsedData;//从originalHtml中抽取的有意义的数据集合
+	private Map<String, Object> parsedData;//从originalHtml中抽取的有意义的数据集合
 	
 	/**
 	 * Loads the content of this page from a fetched HttpEntity.
@@ -49,11 +50,35 @@ public class Page {
 		setContentData(EntityUtils.toByteArray(entity));
 	}
 	
-	public List<Map<String, String>> getData() {
+	public Map<String, Object> getData() {
 		return parsedData;
 	}
-	public void setData(List<Map<String, String>> data) {
+	
+	@SuppressWarnings("unchecked")
+	public List<Map<String, String>> getDataList() {
+		if (parsedData==null) {
+			return null;
+		}
+		return (List<Map<String, String>>) parsedData.get("data");
+	}
+	
+	/**
+	 * 从contentData中提取的数据集
+	 * @param data
+	 */
+	public void setData(Map<String, Object> data) {
 		this.parsedData = data;
+	}
+	
+	/**
+	 * 从contentData中提取的数据集
+	 * @param data
+	 */
+	public void setData(List<Map<String, String>> data) {
+		//如果数据集是list则以<"data", list>的map形式保存。
+		Map<String, Object> pageData = new HashMap<String, Object>();
+		pageData.put("data", data);
+		setData(pageData);
 	}
 
 	public byte[] getContentData() {

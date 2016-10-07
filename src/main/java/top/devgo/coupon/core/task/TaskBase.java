@@ -51,7 +51,7 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	/**
 	 * 获取新的任务
 	 * @param page
-	 * @return
+	 * @return 如果明确没有后续任务可以直接返回null
 	 */
 	protected abstract List<Task> buildNewTask(Page page);
 
@@ -74,7 +74,7 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	protected String getHtmlStr(Page page) {
 		String htmlStr = null;
 		String type = page.getContentType();
-		if(type != null && type.startsWith("text/html")){//text/html;charset=utf-8;
+		if(type != null){//text/html;charset=utf-8; OR application/json; charset=UTF-8
 			try {
 				htmlStr = new String(page.getContentData(), page.getContentCharset());
 			} catch (UnsupportedEncodingException e) {

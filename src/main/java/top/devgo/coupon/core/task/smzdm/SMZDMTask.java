@@ -102,7 +102,7 @@ public class SMZDMTask extends TaskBase {
 	@Override
 	protected void process(Page page) {
 		String htmlStr = getHtmlStr(page);
-		htmlStr = TextUtil.decodeUnicode(htmlStr);
+		htmlStr = TextUtil.decodeUnicode2(htmlStr);
 		htmlStr = JsonUtil.formateDoubleQuotationMarks(htmlStr);
 		List<Map<String, String>> data = extractData(htmlStr);
 		//规格化data
@@ -166,8 +166,8 @@ public class SMZDMTask extends TaskBase {
 
 	@Override
 	protected List<Task> buildNewTask(Page page) {
-		List<Map<String, String>> data = page.getData();
 		List<Task> newTasks = new ArrayList<Task>();
+		List<Map<String, String>> data = page.getDataList();
 		
 		for (int i = 0; i < data.size(); i++) {
 			if (fetchComment) {

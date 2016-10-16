@@ -33,6 +33,7 @@ public class Bootstrap {
 		for (int i = 0; i < channels.length; i++) {
 			beginningTasks.add(new ArchiveTask(1, BilibiliConfig.getTid(channels[i]), 1, "mongodb://localhost:27017", "bilibili", false, true));
 		}
+		//run at 2016-10-05 13:46:54 
 //		beginningTasks.add(new ArchiveTask(1, "22", 1, "mongodb://localhost:27017", "bilibili", false, true));
 //		beginningTasks.add(new VideoFetchTask(1, "6539460", 1));
 

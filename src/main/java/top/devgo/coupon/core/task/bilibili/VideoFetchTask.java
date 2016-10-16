@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -18,7 +17,6 @@ import top.devgo.coupon.core.page.Page;
 import top.devgo.coupon.core.task.DownloadTask;
 import top.devgo.coupon.core.task.Task;
 import top.devgo.coupon.core.task.TaskBase;
-import top.devgo.coupon.utils.JsonUtil;
 
 /**
  * 视频预下载task，本task会获得真实下载地址，由DownloadTask真正完成下载。

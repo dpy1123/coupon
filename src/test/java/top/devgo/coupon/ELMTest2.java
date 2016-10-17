@@ -44,7 +44,7 @@ public class ELMTest2 {
 		// click  rows 47
 		CSVLoader loader = new CSVLoader();
 //		Instances clickInstances = preProcess(folder+trainingFile, loader, true);
-//		
+		
 //		Classifier cf = naiveBayes(clickInstances, true);
 //		
 //		// load unlabeled data and set class attribute
@@ -66,25 +66,35 @@ public class ELMTest2 {
 //    	DataSink.write(folder+"predict_click.csv", result);	 
     	
     	// buy  rows 47
-    	Instances buyInstances = preProcess(folder+trainingFile, loader, false);
-    	Classifier cfBuy = naiveBayes(buyInstances, true);
-    			
-	    loader.setSource(new File(folder, predictFile));
-	    Instances predictBuy = loader.getDataSet();
-	    predictBuy.insertAttributeAt(new Attribute("is_buy", classAttr), predictBuy.numAttributes());
-	    predictBuy.setClassIndex(predictBuy.numAttributes() - 1);
-	    Instances resultBuy = new Instances(predictBuy);
-	    resultBuy.setClassIndex(resultBuy.numAttributes() - 1);
-			    
-	    labelInstances(cfBuy, predictBuy, resultBuy, false);
-    	DataSink.write(folder+"predict_buy.csv", resultBuy);	
+//    	Instances buyInstances = preProcess(folder+trainingFile, loader, false);
+//    	Classifier cfBuy = naiveBayes(buyInstances, true);
+//    			
+//	    loader.setSource(new File(folder, predictFile));
+//	    Instances predictBuy = loader.getDataSet();
+//	    predictBuy.insertAttributeAt(new Attribute("is_buy", classAttr), predictBuy.numAttributes());
+//	    predictBuy.setClassIndex(predictBuy.numAttributes() - 1);
+//	    Instances resultBuy = new Instances(predictBuy);
+//	    resultBuy.setClassIndex(resultBuy.numAttributes() - 1);
+//			    
+//	    labelInstances(cfBuy, predictBuy, resultBuy, false);
+//    	DataSink.write(folder+"predict_buy.csv", resultBuy);	
 //*/  	
     	
-//    	buildOutputFile(folder, predictFile, "predict_click.csv", "predict_buy.csv", "output2.csv");
+    	buildOutputFile(folder, predictFile, "predict_click.csv", "predict_buy.csv", "output.csv", true);
     }
 
+    /**
+     * 
+     * @param folder
+     * @param predictFile
+     * @param click
+     * @param buy
+     * @param resultFileName
+     * @param tabSplit  输出的csv文件是否用tab来分隔。false表示用'，'分割
+     * @throws Exception
+     */
 	private static void buildOutputFile(String folder, String predictFile,
-			String click, String buy, String resultFileName) throws Exception {
+			String click, String buy, String resultFileName, boolean tabSplit) throws Exception {
 		Map<String, String> predict_infos = buildRecord(folder+predictFile, ",", eco_info_id_pos);
         Map<String, String> click_infos = buildRecord(folder+click, ",", eco_info_id_pos);
         Map<String, String> buy_infos = buildRecord(folder+buy, ",", eco_info_id_pos);
@@ -97,20 +107,29 @@ public class ELMTest2 {
             String predict_info = entry.getValue();
             String log_id = predict_info.split(",")[0];
 
+            String[] clicks = click_infos.get(log_id).split(",");
+            String is_click = clicks[clicks.length-1];
+            String[] buys = buy_infos.get(log_id).split(",");
+            String is_buy = buys[buys.length-1];
+            
+            
+            //后置处理：1.所有买了的一定click过  
+            if ("1".equals(is_buy)) {
+				is_click = "1";
+			}
+            //TODO 2.每个用户至少有一个click和一个buy
+            
             StringBuilder sb = new StringBuilder();
             sb.append(log_id);
             sb.append("\t");
-            String[] clicks = click_infos.get(log_id).split(",");
-            sb.append(clicks[clicks.length-1]);
+            sb.append(is_click);
             sb.append("\t");
-            String[] buys = buy_infos.get(log_id).split(",");
-            sb.append(buys[buys.length-1]);
-
+            sb.append(is_buy);
+            
             records.add(sb.toString());
         }
-
         String header = "log_id"+"\t"+"is_click"+"\t"+"is_buy";
-        writeCSV(folder+resultFileName, header, records, 0, false);
+        writeCSV(folder+resultFileName, header, records, 0, tabSplit);
     }
     
 	private static void labelInstances(Classifier cf, Instances predictData, Instances result, boolean log) {

@@ -12,6 +12,7 @@ import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.core.Utils;
 import weka.core.converters.CSVLoader;
 import weka.core.converters.ConverterUtils.DataSink;
@@ -43,10 +44,11 @@ public class ELMTest2 {
 //*
 		// click  rows 47
 		CSVLoader loader = new CSVLoader();
-//		Instances clickInstances = preProcess(folder+trainingFile, loader, true);
+		Instances clickInstances = preProcess(folder+trainingFile, loader, true);
 		
-//		Classifier cf = naiveBayes(clickInstances, true);
-//		
+		Classifier cf = naiveBayes(clickInstances, true);
+		SerializationHelper.write(folder+"click.model", cf);
+		
 //		// load unlabeled data and set class attribute
 //	    loader.setSource(new File(folder, predictFile));
 //	    Instances predictData = loader.getDataSet();
@@ -66,9 +68,10 @@ public class ELMTest2 {
 //    	DataSink.write(folder+"predict_click.csv", result);	 
     	
     	// buy  rows 47
-//    	Instances buyInstances = preProcess(folder+trainingFile, loader, false);
-//    	Classifier cfBuy = naiveBayes(buyInstances, true);
-//    			
+    	Instances buyInstances = preProcess(folder+trainingFile, loader, false);
+    	Classifier cfBuy = naiveBayes(buyInstances, true);
+    	SerializationHelper.write(folder+"buy.model", cfBuy);
+    			
 //	    loader.setSource(new File(folder, predictFile));
 //	    Instances predictBuy = loader.getDataSet();
 //	    predictBuy.insertAttributeAt(new Attribute("is_buy", classAttr), predictBuy.numAttributes());
@@ -80,7 +83,7 @@ public class ELMTest2 {
 //    	DataSink.write(folder+"predict_buy.csv", resultBuy);	
 //*/  	
     	
-    	buildOutputFile(folder, predictFile, "predict_click.csv", "predict_buy.csv", "output.csv", true);
+//    	buildOutputFile(folder, predictFile, "predict_click.csv", "predict_buy.csv", "output.csv", true);
     }
 
     /**

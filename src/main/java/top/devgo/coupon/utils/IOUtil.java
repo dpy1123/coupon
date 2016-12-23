@@ -263,6 +263,30 @@ public class IOUtil {
 		}
 	}
 
+	/**
+	 *
+	 * @param list
+	 * @param path
+	 * @param charEncoding
+	 * @param <E> 如果不是基本对象类型,需要自行覆写toString方法
+	 * @throws IOException
+	 */
+	public static <E> void writeList(List<E> list, String path, String charEncoding) throws IOException {
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(path);
+			for (int i = 0; i < list.size(); i++) {
+				fos.write(list.get(i).toString().getBytes());
+				fos.write(LINEBYTE);
+			}
+			fos.flush();
+		} finally {
+			if (fos != null) {
+				fos.close();
+		    }
+		}
+	}
+
 	public static List<String> readFile2List(String path, String charEncoding) throws UnsupportedEncodingException, FileNotFoundException {
 		return readFile2List(getReader(path, charEncoding));
 	}

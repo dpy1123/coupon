@@ -40,7 +40,7 @@ public class ArchiveTask extends TaskBase {
 	 * 初始化抓取任务
 	 * @param priority
 	 * @param tId 
-	 * @param pageNo 页数
+	 * @param pageNo 起始页数
 	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
 	 * @param dbName
 	 * @param updateRecord 是否更新已有的记录

@@ -11,6 +11,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -39,14 +40,16 @@ public class CrawlerManager {
 	/**
 	 * Crawler线程池
 	 */
-	private ExecutorService crawlerThreadPool; 
-	
+	private ExecutorService crawlerThreadPool;
+
+    private Thread taskManager;//用来管理task的执行
+    private final CrawlerManager self = this;
+
 	/**
 	 * 初始化stage
 	 * @param config
 	 */
 	private void initStage(Config config) {
-		
 		taskQueue = new PriorityBlockingQueue<Task>(config.getTaskQueueCapacity());
 
 		// Create an HttpClient with the ThreadSafeClientConnManager.
@@ -55,60 +58,59 @@ public class CrawlerManager {
 		connectionManager = new PoolingHttpClientConnectionManager();
 		connectionManager.setValidateAfterInactivity(config.getConnectionValidateInterval());
 		connectionManager.setMaxTotal(config.getMaxConnections());
-		
-		httpclient = HttpClients.custom().setConnectionManager(connectionManager).build();
-		
+
+		httpclient = HttpClients.custom()
+				.setConnectionManager(connectionManager)
+				.setDefaultRequestConfig(
+						RequestConfig.custom().setConnectTimeout(config.getConnectionTimeout())
+								.setSocketTimeout(config.getConnectionTimeout()).build())
+				.build();
+
 		crawlerThreadPool = Executors.newFixedThreadPool(config.getMaxCrawlers());
 		
-		List<Task> seeds = config.getBeginningTasks();
-		if(seeds!=null){
-			for (Iterator<Task> it = seeds.iterator(); it.hasNext();) {
-				Task task = it.next();
-				addTaskToQueue(task);
-			}
-		}
+        addTasksToQueue(config.getBeginningTasks());
+
+        taskManager = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (started) {
+                    int tasks = taskQueue.size();
+                    int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
+                    if (tasks < 1) {
+                        logger.info("暂无新任务，尚有"+workingThread+"个任务在执行。");
+                        if (workingThread < 1) {
+                            stop();
+                        }
+                    }else{
+                        int jobs = Math.min(tasks, (config.getMaxCrawlers()-workingThread+1) * Math.max(2, (tasks/config.getTaskQueueCapacity())*(config.getTaskScanInterval()/1000)));//提供当前空余worker数2倍或更多倍的任务
+                        for (int i = 0; i < jobs; i++) {
+                            Task task = taskQueue.poll();
+                            crawlerThreadPool.execute(new Crawler(httpclient, task, self));
+                        }
+                        logger.info("任务总数"+tasks+"，新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
+                    }
+                    sleep(config.getTaskScanInterval());
+                }
+            }
+
+
+        });
+        taskManager.start();
 	}
-	
-	private Thread taskManager;//用来管理task的执行 
-	private boolean started = false;//记录本容器是否启动
-	private final CrawlerManager self = this;
-	
+
+    private boolean started = false;//记录本容器是否启动
+
 	public void start(final Config config) {
 		if(started){//已被启动
+            addTasksToQueue(config.getBeginningTasks());
+            logger.info("crawler already started, add seeds: "+ config.getBeginningTasks().size());
 			return;
 		}
 		
 		started = true;
 		initStage(config);
-		
-		taskManager = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (started) {
-					int tasks = taskQueue.size();
-					int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
-					if (tasks < 1) {
-						logger.info("暂无新任务，尚有"+workingThread+"个任务在执行。");
-						if (workingThread < 1) {
-							stop();
-						}
-					}else{
-						int jobs = Math.min(tasks, (config.getMaxCrawlers()-workingThread+1) * Math.max(2, (tasks/config.getTaskQueueCapacity())*(config.getTaskScanInterval()/1000)));//提供当前空余worker数2倍或更多倍的任务
-						for (int i = 0; i < jobs; i++) {
-							Task task = taskQueue.poll();
-							crawlerThreadPool.execute(new Crawler(httpclient, task, self));
-						}
-						logger.info("任务总数"+tasks+"，新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
-					}
-					sleep(config.getTaskScanInterval());
-				}
-			}
-			
-			
-		});
-		taskManager.start();
-		
-		logger.info("started at: "+ new Date());
+
+		logger.info("crawler start, at: "+ new Date());
 	}
 
 	public void stop() {
@@ -123,7 +125,7 @@ public class CrawlerManager {
 		started = false;
 		waitUntilFinish(10L);
 		
-		logger.info("stoped at: "+ new Date());
+		logger.info("crawler stop, at: "+ new Date());
 	}
 	
 	private void waitUntilFinish(long timeout) {
@@ -164,4 +166,22 @@ public class CrawlerManager {
 	public void addTaskToQueue(Task task) {
 		taskQueue.put(task);
 	}
+
+    private void addTasksToQueue(List<Task> seeds) {
+        if(seeds!=null){
+            for (Iterator<Task> it = seeds.iterator(); it.hasNext();) {
+                Task task = it.next();
+                addTaskToQueue(task);
+            }
+        }
+    }
+
+	public int getTaskQueueCount() {
+		return taskQueue.size();
+	}
+
+	public int getWorkingThreadCount() {
+		return ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
+	}
+
 }

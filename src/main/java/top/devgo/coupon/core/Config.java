@@ -20,6 +20,10 @@ public class Config {
 	 */
 	private int connectionValidateInterval = 5000;
 	/**
+	 * 默认httpClient请求的超时时间ms
+	 */
+	private int connectionTimeout = 5000;
+	/**
 	 * 设置PoolingHttpClientConnectionManager的connection数量，默认10个
 	 */
 	private int maxConnections = 10;
@@ -48,6 +52,14 @@ public class Config {
 
 	public void setConnectionValidateInterval(int connectionValidateInterval) {
 		this.connectionValidateInterval = connectionValidateInterval;
+	}
+
+	public int getConnectionTimeout() {
+		return connectionTimeout;
+	}
+
+	public void setConnectionTimeout(int connectionTimeout) {
+		this.connectionTimeout = connectionTimeout;
 	}
 
 	public int getMaxConnections() {

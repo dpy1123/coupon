@@ -11,7 +11,9 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
+import com.sun.istack.internal.Nullable;
 import top.devgo.coupon.utils.IOUtil;
 import top.devgo.coupon.utils.StringUtil;
 
@@ -26,17 +28,24 @@ import com.sun.net.httpserver.spi.HttpServerProvider;
  *
  */
 public class SimpleHttpServer {
-	public static void main(String[] args) throws IOException {
+
+	/**
+	 *
+	 * @param port 监听端口
+	 * @param maxConcurrency 最大并发数, 达到此数值后的请求会被丢弃
+	 * @param executor 执行器,可空
+	 * @throws IOException
+	 */
+	public static void start(int port, int maxConcurrency, @Nullable Executor executor) throws IOException {
 		HttpServerProvider provider = HttpServerProvider.provider();
-		HttpServer httpserver = provider.createHttpServer(new InetSocketAddress(8877), 100);// 监听端口6666,能同时接
-																									// 受100个请求
+		HttpServer httpserver = provider.createHttpServer(new InetSocketAddress(port), maxConcurrency);
 		httpserver.createContext("/", new CouponHttpHandler());
-		httpserver.setExecutor(null);
+		httpserver.setExecutor(executor);
 		httpserver.start();
-		System.out.println("server started");
+		System.out.println("SimpleHttpServer start!");
 	}
 	
-	private static class CouponHttpHandler implements HttpHandler {
+	public static class CouponHttpHandler implements HttpHandler {
 
 		public void handle(HttpExchange httpExchange) throws IOException {
 			try {

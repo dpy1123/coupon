@@ -58,18 +58,7 @@ public class SMZDMTask extends TaskBase {
 		this.fetchComment = fetchComment;
 	}
 	
-	/**
-	 * 初始化smzdm首页抓取任务
-	 * @param timesort 时间戳
-	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
-	 * @param dbName
-	 * @param updateRecord 是否更新已有的记录
-	 * @param fetchComment 是否抓取相关的评论
-	 */
-	public SMZDMTask(String timesort, String mongoURI, String dbName, boolean updateRecord, boolean fetchComment) {
-		this(timesort, DateUtil.getDateString(DateUtil.getBeginOfDay(new Date())), mongoURI, dbName, updateRecord, fetchComment);
-	}
-	
+
 	/**
 	 * 初始化smzdm首页抓取任务
 	 * @param timesort 时间戳

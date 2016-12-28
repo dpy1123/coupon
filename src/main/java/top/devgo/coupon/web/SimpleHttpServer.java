@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import com.sun.istack.internal.Nullable;
 import top.devgo.coupon.utils.IOUtil;
 import top.devgo.coupon.utils.StringUtil;
 
@@ -36,7 +35,7 @@ public class SimpleHttpServer {
 	 * @param executor 执行器,可空
 	 * @throws IOException
 	 */
-	public static void start(int port, int maxConcurrency, @Nullable Executor executor) throws IOException {
+	public static void start(int port, int maxConcurrency, Executor executor) throws IOException {
 		HttpServerProvider provider = HttpServerProvider.provider();
 		HttpServer httpserver = provider.createHttpServer(new InetSocketAddress(port), maxConcurrency);
 		httpserver.createContext("/", new CouponHttpHandler());

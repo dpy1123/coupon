@@ -55,6 +55,7 @@ public class JobMXBean {
     public void addBilibiliArchiveTask(
             @JMXBeanParameter(name = "channels", description = "抓取的频道名称Str, 用逗号分割, eg: " +
                     "\"鬼畜调教,音MAD,人力VOCALOID,宅舞\", 如果不填则抓全部频道") String channelStr,
+            @JMXBeanParameter(name = "stopDate", description = "抓取结束日期 \"2015-12-01 00:00:00\"") String stopDate,
             @JMXBeanParameter(name = "updateRecord", description = "是否更新已有记录") boolean updateRecord,
             @JMXBeanParameter(name = "fetchComment", description = "是否抓评论") boolean fetchComment) {
         String[] channels;
@@ -65,7 +66,7 @@ public class JobMXBean {
         }
         List<Task> beginningTasks = new ArrayList<Task>();
         for (int i = 0; i < channels.length; i++) {
-			beginningTasks.add(new ArchiveTask(1, BilibiliConfig.getTid(channels[i]), 1,
+			beginningTasks.add(new ArchiveTask(BilibiliConfig.getTid(channels[i]), 1, stopDate,
                     "mongodb://localhost:27017", "bilibili", updateRecord, fetchComment));
 		}
         config.setBeginningTasks(beginningTasks);

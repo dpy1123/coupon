@@ -3,9 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>top.devgo</groupId>
 	<artifactId>Coupon</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.2</version>
 	
 	<repositories>
+		<repository>
+            <id>datanucleus-repo</id>
+            <url>http://www.datanucleus.org/downloads/maven2/</url>
+        </repository>
 		<repository>
             <id>mvn-repo</id>
             <url>http://maven.nlpcn.org/</url>
@@ -19,7 +23,7 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-        
+
 	</repositories>
 
 	<dependencies>
@@ -69,7 +73,19 @@
 			<artifactId>JMXWrapper</artifactId>
 			<version>1.2</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.sun.jdmk</groupId>
+            <artifactId>jmxtools</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.20.0-GA</version>
+        </dependency>
+
+
+    </dependencies>
 
 	<build>
 		<plugins>
@@ -90,7 +106,7 @@
 			            <manifest>  
 			                <addClasspath>true</addClasspath>  
 			                <classpathPrefix>lib/</classpathPrefix>  
-			                <mainClass>top.devgo.coupon.web.SimpleHttpServer</mainClass>  
+			                <mainClass>top.devgo.coupon.core.Bootstrap</mainClass>
 			            </manifest>  
 			        </archive>  
 			    </configuration>  

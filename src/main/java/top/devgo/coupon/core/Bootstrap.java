@@ -2,6 +2,7 @@ package top.devgo.coupon.core;
 
 import com.udojava.jmx.wrapper.JMXBeanWrapper;
 import top.devgo.coupon.core.mx.JobMXBean;
+import top.devgo.coupon.core.mx.MXServer;
 import top.devgo.coupon.web.SimpleHttpServer;
 
 import javax.management.*;
@@ -42,9 +43,8 @@ public class Bootstrap {
 
         SimpleHttpServer.start(8877, 100, Executors.newFixedThreadPool(config.getMaxCrawlers()));
 
-        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-        server.registerMBean(new JMXBeanWrapper(new JobMXBean(manager, config)), new ObjectName("top.devgo.coupon.core.mx:name=JobMXBean, type=JobMXBean"));
+        MXServer.registerMBean(new JMXBeanWrapper(new JobMXBean(manager, config)), new ObjectName("top.devgo.coupon.core.mx:name=JobMXBean, type=JobMXBean"));
+        MXServer.start(8899, 8898, "couponMxServer");
 
-        System.out.println(("MainFrame start, at: "+ new Date()));
 	}
 }

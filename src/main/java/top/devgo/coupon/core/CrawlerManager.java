@@ -145,7 +145,7 @@ public class CrawlerManager {
 			}
 			httpclient.close();
 			connectionManager.close();
-			MongoDBUtil.close();
+//			MongoDBUtil.close();
 		} catch (IOException e) {
 			logger.error("", e);
 		} catch (InterruptedException e) {

@@ -1,6 +1,7 @@
 package top.devgo.coupon.core.task.bilibili;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import top.devgo.coupon.core.page.Page;
 import top.devgo.coupon.core.task.Task;
 import top.devgo.coupon.core.task.TaskBase;
+import top.devgo.coupon.utils.DateUtil;
 import top.devgo.coupon.utils.JsonUtil;
 import top.devgo.coupon.utils.MongoDBUtil;
 import top.devgo.coupon.utils.TextUtil;
@@ -30,7 +32,7 @@ public class ArchiveTask extends TaskBase {
 	
 	private String tId;
 	private int pageNo;
-	
+    private String stopDate;
 	private String mongoURI;
 	private String dbName;
 	private boolean updateRecord;//是否更新已有的记录
@@ -41,20 +43,37 @@ public class ArchiveTask extends TaskBase {
 	 * @param priority
 	 * @param tId 
 	 * @param pageNo 起始页数
+     * @param stopDate 抓取结束日期 "2016-12-26 21:43"
 	 * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
 	 * @param dbName
 	 * @param updateRecord 是否更新已有的记录
 	 * @param fetchComment 是否抓取相关的评论
 	 */
-	public ArchiveTask(int priority, String tId, int pageNo, String mongoURI, String dbName, 
+	public ArchiveTask(int priority, String tId, int pageNo, String stopDate, String mongoURI, String dbName,
 			boolean updateRecord, boolean fetchComment) {
 		super(priority);
 		this.tId = tId;
 		this.pageNo = pageNo;
+		this.stopDate = stopDate;
 		this.mongoURI = mongoURI;
 		this.dbName = dbName;
 		this.updateRecord = updateRecord;
 		this.fetchComment = fetchComment;
+	}
+
+    /**
+     * 初始化抓取任务
+     * @param tId
+     * @param pageNo 起始页数
+     * @param stopDate 抓取结束日期 "2016-12-26 21:43"
+     * @param mongoURI "mongodb://localhost:27017,localhost:27018,localhost:27019"
+     * @param dbName
+     * @param updateRecord 是否更新已有的记录
+     * @param fetchComment 是否抓取相关的评论
+     */
+	public ArchiveTask(String tId, int pageNo, String stopDate, String mongoURI, String dbName,
+			boolean updateRecord, boolean fetchComment) {
+		this(1, tId, pageNo, stopDate, mongoURI, dbName, updateRecord, fetchComment);
 	}
 
 	@Override
@@ -104,23 +123,32 @@ public class ArchiveTask extends TaskBase {
 		List<Task> newTasks = new ArrayList<Task>();
 		Map<String, Object> data = page.getData();
 		if (data==null) return null;
-		
+
 		List<Map<String, Object>> archives = (List<Map<String, Object>>) data.get("archives");
 		for (int i = 0; i < archives.size(); i++) {
 			if (fetchComment) {
 				//增加相应的评论的抓取任务
 				int archiveId = (int) archives.get(i).get("aid");
 				newTasks.add(new ReplyTask(this.priority+1, archiveId+"", 1, this.mongoURI, this.dbName, this.updateRecord));
-				
 			}
 		}
-		
-		Map<String, Object> p = (Map<String, Object>) data.get("page");
-		int totalPage = (int) Math.ceil((int)p.get("count")*1.0 / (int)p.get("size"));
-		if (this.pageNo < totalPage) {
-			newTasks.add(new ArchiveTask(this.priority, this.tId, this.pageNo+1, this.mongoURI, this.dbName, this.updateRecord, this.fetchComment));
-		}
-		
+
+        //增加新任务
+        if (archives.size()>0){
+            String archiveCreateDateStr = (String) archives.get(archives.size()-1).get("create");//本页最早的archive的创建时间
+
+            Map<String, Object> p = (Map<String, Object>) data.get("page");
+            int totalPage = (int) Math.ceil((int)p.get("count")*1.0 / (int)p.get("size"));
+            try {
+                if (this.pageNo < totalPage &&
+                        DateUtil.getDateFromString(archiveCreateDateStr).after(DateUtil.getDateFromString(this.stopDate))) {
+                    newTasks.add(new ArchiveTask(this.priority, this.tId, this.pageNo+1, this.stopDate, this.mongoURI, this.dbName, this.updateRecord, this.fetchComment));
+                }
+            } catch (ParseException e) {
+                logger.error(e);
+            }
+        }
+
 		return newTasks;
 	}
 

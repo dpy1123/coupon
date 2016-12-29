@@ -1,22 +1,21 @@
 package top.devgo.coupon.core.mx;
 
 import com.sun.jdmk.comm.*;
-import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.bytecode.AttributeInfo;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.LocalVariableAttribute;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.remote.JMXAuthenticator;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.security.auth.Subject;
 import java.lang.management.ManagementFactory;
-import java.net.URLDecoder;
 import java.rmi.registry.LocateRegistry;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by dd on 16/12/27.
@@ -47,7 +46,23 @@ public class MXServer {
 //      String serviceUrl = "service:jmx:rmi:///jndi/rmi://localhost:" + rmiPort + "/" + serverName;//这种写法jconsole连不上
         String serviceUrl = "service:jmx:rmi:///jndi/rmi://localhost:" + rmiPort + "/jmxrmi";
         JMXServiceURL url = new JMXServiceURL(serviceUrl);
-        JMXConnectorServer jmxConnServer = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mBeanServer);
+        Map<String, Object> prop = new HashMap<String, Object>();
+        prop.put(JMXConnectorServer.AUTHENTICATOR, new JMXAuthenticator() {
+            @Override
+            public Subject authenticate(Object credentials) {
+                if (credentials instanceof String[]){
+                    String[] credentialStrs = (String[]) credentials;
+                    if (credentialStrs!=null && credentialStrs.length==2){
+                        String name = credentialStrs[0];
+                        String pwd = credentialStrs[1];
+                        if ("admin".equals(name) && "1123".equals(pwd))
+                            return new Subject();
+                    }
+                }
+                throw new SecurityException("jmx auth failed");
+            }
+        });
+        JMXConnectorServer jmxConnServer = JMXConnectorServerFactory.newJMXConnectorServer(url, prop, mBeanServer);
         jmxConnServer.start();
 
         System.out.println("JMXServer start!");

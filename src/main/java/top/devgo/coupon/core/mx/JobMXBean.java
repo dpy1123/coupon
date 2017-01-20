@@ -45,7 +45,7 @@ public class JobMXBean {
             @JMXBeanParameter(name = "updateRecord", description = "是否更新已有记录") boolean updateRecord,
             @JMXBeanParameter(name = "fetchComment", description = "是否抓评论") boolean fetchComment) {
         List<Task> beginningTasks = new ArrayList<Task>();
-        beginningTasks.add(new SMZDMTask("999999999999", stopDate, "mongodb://localhost:27017",
+        beginningTasks.add(new SMZDMTask("999999999999", stopDate, config.getMongoUrl(),
                 "coupon", updateRecord, fetchComment));
         config.setBeginningTasks(beginningTasks);
         crawlerManager.start(config);
@@ -67,7 +67,7 @@ public class JobMXBean {
         List<Task> beginningTasks = new ArrayList<Task>();
         for (int i = 0; i < channels.length; i++) {
 			beginningTasks.add(new ArchiveTask(BilibiliConfig.getTid(channels[i]), 1, stopDate,
-                    "mongodb://localhost:27017", "bilibili", updateRecord, fetchComment));
+                    config.getMongoUrl(), "bilibili", updateRecord, fetchComment));
 		}
         config.setBeginningTasks(beginningTasks);
         crawlerManager.start(config);

@@ -38,6 +38,8 @@ public class Config {
 	 */
 	private int taskScanInterval = 1000;
 
+	private String mongoUrl = "mongodb://localhost:27017";
+
 	public int getTaskQueueCapacity() {
 		return taskQueueCapacity;
 	}
@@ -93,5 +95,12 @@ public class Config {
 	public void setTaskScanInterval(int taskScanInterval) {
 		this.taskScanInterval = taskScanInterval;
 	}
-	
+
+    public String getMongoUrl() {
+        return mongoUrl;
+    }
+
+    public void setMongoUrl(String mongoUrl) {
+        this.mongoUrl = mongoUrl;
+    }
 }

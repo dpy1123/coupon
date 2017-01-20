@@ -23,6 +23,8 @@ public class Bootstrap {
 		config.setMaxConnections(20);
 		config.setTaskQueueCapacity(100);
 		config.setTaskScanInterval(1000);
+		if (args!=null && args.length>0)
+		    config.setMongoUrl(args[0]);
 
 //		List<Task> beginningTasks = new ArrayList<Task>();
 //		//抓SMZDM

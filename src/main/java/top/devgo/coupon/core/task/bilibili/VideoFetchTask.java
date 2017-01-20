@@ -30,16 +30,19 @@ public class VideoFetchTask extends TaskBase {
 	private String archiveId;
 	private int p;
 	private boolean tryToFetchNextP = false;
-	
+	private String videoPath;
+
 	/**
 	 * 初始化抓取任务
 	 * @param priority
 	 * @param archiveId 
-	 * @param p 分p数 
+	 * @param videoPath
+	 * @param p 分p数
 	 */
-	public VideoFetchTask(int priority, String archiveId, int p) {
+	public VideoFetchTask(int priority, String archiveId, String videoPath, int p) {
 		super(priority);
 		this.archiveId = archiveId;
+		this.videoPath = videoPath;
 		this.p = p;
 	}
 
@@ -103,12 +106,12 @@ public class VideoFetchTask extends TaskBase {
 						}
 					}
 				}
-				newTasks.add(new DownloadTask(priority-1, url, BilibiliConfig.VIDEO_PATH, fileName));
+				newTasks.add(new DownloadTask(priority-1, url, videoPath, fileName));
 			}	
 		}
 		
 		if (tryToFetchNextP) {
-			newTasks.add(new VideoFetchTask(priority, archiveId, p+1));
+			newTasks.add(new VideoFetchTask(priority, archiveId, videoPath, p+1));
 		}
 		return newTasks;
 	}

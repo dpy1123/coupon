@@ -10,19 +10,10 @@ import java.util.Map;
  *
  */
 public class BilibiliConfig {
-	/**
-	 * 视频存放地址
-	 */
-	public static final String VIDEO_PATH = "D:/test/bilibili_video";
 
 	private static final Map<String, String> tInfo = new HashMap<String, String>();
 	
 	static {
-		File storageFolder = new File(VIDEO_PATH);
-		if (!storageFolder.exists()) {
-			storageFolder.mkdirs();
-		}
-		
 		//影视
 		tInfo.put("电影相关", "82");
 		tInfo.put("短片", "85");

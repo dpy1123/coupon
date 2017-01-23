@@ -73,9 +73,13 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	 */
 	protected String getHtmlStr(Page page) {
 		String htmlStr = null;
+		String charsetName = null;
 		String type = page.getContentType();
 		if(type != null){//text/html;charset=utf-8; OR application/json; charset=UTF-8
 			try {
+                charsetName = page.getContentCharset();
+                if (charsetName == null)
+                    charsetName = "UTF-8";
 				htmlStr = new String(page.getContentData(), page.getContentCharset());
 			} catch (UnsupportedEncodingException e) {
 				logger.error("", e);

@@ -9,6 +9,8 @@ import top.devgo.coupon.core.CrawlerManager;
 import top.devgo.coupon.core.task.Task;
 import top.devgo.coupon.core.task.bilibili.ArchiveTask;
 import top.devgo.coupon.core.task.bilibili.BilibiliConfig;
+import top.devgo.coupon.core.task.bilibili.FavBoxTask;
+import top.devgo.coupon.core.task.bilibili.UserTask;
 import top.devgo.coupon.core.task.smzdm.SMZDMTask;
 import top.devgo.coupon.utils.StringUtil;
 
@@ -69,6 +71,29 @@ public class JobMXBean {
 			beginningTasks.add(new ArchiveTask(BilibiliConfig.getTid(channels[i]), 1, stopDate,
                     config.getMongoUrl(), "bilibili", updateRecord, fetchComment));
 		}
+        config.setBeginningTasks(beginningTasks);
+        crawlerManager.start(config);
+    }
+
+    @JMXBeanOperation(name = "addBilibiliUserTask", description = "添加bilibili用户抓取任务", sortValue = "3")
+    public void addBilibiliUserTask(
+            @JMXBeanParameter(name = "uId", description = "用户uid") int uId,
+            @JMXBeanParameter(name = "maxUId", description = "本次抓取最大的用户uid.如果只抓特定用户,和uId设置成一样") int maxUId,
+            @JMXBeanParameter(name = "updateRecord", description = "是否更新已有记录") boolean updateRecord) {
+        List<Task> beginningTasks = new ArrayList<Task>();
+        beginningTasks.add(new UserTask(uId, maxUId, config.getMongoUrl(), "bilibili", updateRecord));
+        config.setBeginningTasks(beginningTasks);
+        crawlerManager.start(config);
+    }
+
+    @JMXBeanOperation(name = "addBilibiliFavTask", description = "添加bilibili收藏抓取任务", sortValue = "4")
+    public void addBilibiliFavTask(
+            @JMXBeanParameter(name = "uId", description = "用户uid") int uId,
+            @JMXBeanParameter(name = "maxUId", description = "本次抓取最大的用户uid.如果只抓特定用户,和uId设置成一样") int maxUId,
+            @JMXBeanParameter(name = "updateRecord", description = "是否更新已有记录") boolean updateRecord,
+            @JMXBeanParameter(name = "fetchFavList", description = "是否抓取收藏夹下的记录") boolean fetchFavList) {
+        List<Task> beginningTasks = new ArrayList<Task>();
+        beginningTasks.add(new FavBoxTask(uId, maxUId, config.getMongoUrl(), "bilibili", updateRecord, fetchFavList));
         config.setBeginningTasks(beginningTasks);
         crawlerManager.start(config);
     }

@@ -71,6 +71,7 @@ public class CrawlerManager {
         addTasksToQueue(config.getBeginningTasks());
 
         taskManager = new Thread(new Runnable() {
+        	private int taskScanInterval = config.getTaskScanInterval();
             @Override
             public void run() {
                 while (started) {
@@ -89,10 +90,20 @@ public class CrawlerManager {
                         }
                         logger.info("任务总数"+tasks+"，新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
                     }
-                    sleep(config.getTaskScanInterval());
+                    taskScanInterval = calcNewInterval(taskScanInterval, tasks, workingThread, config.getMaxCrawlers());
+                    sleep(taskScanInterval);
                 }
             }
 
+            private int calcNewInterval(int oldInterval, int tasks, int working, int poolSize) {
+                int times = tasks / poolSize;
+                if (times >= 100)
+                    return oldInterval * 2;
+                else if (times <= 1 && working<poolSize && oldInterval>20)
+                    return oldInterval / 2;
+                else
+                    return oldInterval;
+            }
 
         });
         taskManager.start();

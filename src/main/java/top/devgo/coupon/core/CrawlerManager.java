@@ -78,7 +78,7 @@ public class CrawlerManager {
                     int tasks = taskQueue.size();
                     int workingThread = ((ThreadPoolExecutor)crawlerThreadPool).getActiveCount();
                     if (tasks < 1) {
-                        logger.trace("暂无新任务，尚有"+workingThread+"个任务在执行。");
+                        logger.info("暂无新任务，尚有"+workingThread+"个任务在执行。");
                         if (workingThread < 1) {
                             stop();
                         }
@@ -88,7 +88,7 @@ public class CrawlerManager {
                             Task task = taskQueue.poll();
                             crawlerThreadPool.execute(new Crawler(httpclient, task, self));
                         }
-                        logger.trace("任务总数"+tasks+"，新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
+                        logger.info("任务总数"+tasks+"，新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
                     }
                     taskScanInterval = calcNewInterval(taskScanInterval, tasks, workingThread, config.getMaxCrawlers());
                     sleep(taskScanInterval);
@@ -97,7 +97,7 @@ public class CrawlerManager {
 
             private int calcNewInterval(int oldInterval, int tasks, int working, int poolSize) {
                 int times = tasks / poolSize;
-                if (times >= 100)
+                if (times >= 100 || tasks < 1)
                     return oldInterval * 2;
                 else if (times <= 1 && working<poolSize && oldInterval>20)
                     return oldInterval / 2;

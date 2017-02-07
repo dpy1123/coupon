@@ -18,7 +18,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
 
 import top.devgo.coupon.core.task.Task;
-import top.devgo.coupon.utils.MongoDBUtil;
 
 /**
  * crawler的主控类
@@ -57,6 +56,12 @@ public class CrawlerManager {
         // be using the HttpClient.
 		connectionManager = new PoolingHttpClientConnectionManager();
 		connectionManager.setValidateAfterInactivity(config.getConnectionValidateInterval());
+        connectionManager.setDefaultMaxPerRoute(config.getMaxConnections()/2);//设置每个路由(route)的最大连接数。
+        //这里route的概念可以理解为 运行环境机器 到 目标机器的一条线路。
+        // 举例来说，我们使用HttpClient的实现来分别请求 www.baidu.com 的资源和 www.bing.com 的资源那么他就会产生两个route。
+        // 这里为什么要特别提到route最大连接数这个参数呢，因为这个参数的默认值为2，如果不设置这个参数值默认情况下对于同一个目标机器的
+        // 最大并发连接只有2个！这意味着如果你正在执行一个针对某一台目标机器的抓取任务的时候，哪怕你设置连接池的最大连接数为200，
+        // 但是实际上还是只有2个连接在工作，其他剩余的198个连接都在等待，都是为别的目标机器服务的。
 		connectionManager.setMaxTotal(config.getMaxConnections());
 
 		httpclient = HttpClients.custom()

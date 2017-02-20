@@ -104,7 +104,7 @@ public class CrawlerManager {
                 int times = tasks / poolSize;
                 if (times >= 100 || tasks < 1)
                     return oldInterval * 2;
-                else if (times <= 1 && working<poolSize && oldInterval>20)
+                else if (working<poolSize && oldInterval>20)
                     return oldInterval / 2;
                 else
                     return oldInterval;

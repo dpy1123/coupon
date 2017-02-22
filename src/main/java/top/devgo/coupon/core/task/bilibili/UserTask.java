@@ -2,9 +2,13 @@ package top.devgo.coupon.core.task.bilibili;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.log4j.Logger;
+import top.devgo.coupon.core.dynamic.IpProxy;
+import top.devgo.coupon.core.dynamic.UserAgent;
 import top.devgo.coupon.core.page.Page;
 import top.devgo.coupon.core.task.Task;
 import top.devgo.coupon.core.task.TaskBase;
@@ -69,7 +73,8 @@ public class UserTask extends TaskBase {
                 .setHeader("Content-Type", "application/x-www-form-urlencoded")
                 .setHeader("Referer", "http://space.bilibili.com/"+uId+"/")
                 .setHeader("X-Requested-With", "XMLHttpRequest")
-                .setHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36")
+                .setHeader("User-Agent", UserAgent.getUA())
+                .setConfig(RequestConfig.custom().setProxy(HttpHost.create(IpProxy.getProxyHost())).build())
                 .build();
         return request;
     }
@@ -91,6 +96,7 @@ public class UserTask extends TaskBase {
             Map<String, Object> data = (Map<String, Object>) result.get("data");
             //调整数据
             data.put("_id", uId+"");//指定主键
+            data.put("uid", uId);//增加数值类型mid,便于统计
 
             page.setData(data);
 

@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.log4j.Logger;
@@ -40,6 +41,8 @@ public class Crawler implements Runnable {
 		try {
 			response = httpClient.execute(request, new BasicHttpContext());
 			newTasks = task.process(response);
+		} catch (HttpHostConnectException e) {
+            stage.addTaskToQueue(task);//re-post
 		} catch (IOException e) {
 			logger.error("", e);
 		}finally{

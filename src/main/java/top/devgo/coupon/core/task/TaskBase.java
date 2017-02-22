@@ -20,12 +20,12 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	protected static Logger logger = Logger.getLogger(TaskBase.class.getName());
 	
 	protected int priority;//优先级
-	
+
 	public TaskBase(int priority) {
 		this.priority = priority;
 	}
-	
-	/**
+
+    /**
 	 * 获取内容
 	 * @param response
 	 * @return
@@ -42,13 +42,13 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 		}
 		return page;
 	}
-	
+
 	/**
 	 * 处理获取的内容
 	 * @param page
 	 */
 	protected abstract void process(Page page);
-	/**
+    /**
 	 * 获取新的任务
 	 * @param page
 	 * @return 如果明确没有后续任务可以直接返回null
@@ -73,14 +73,13 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	 */
 	protected String getHtmlStr(Page page) {
 		String htmlStr = null;
-		String charsetName = null;
 		String type = page.getContentType();
 		if(type != null){//text/html;charset=utf-8; OR application/json; charset=UTF-8
 			try {
-                charsetName = page.getContentCharset();
+				String charsetName = page.getContentCharset();
                 if (charsetName == null)
                     charsetName = "UTF-8";
-				htmlStr = new String(page.getContentData(), page.getContentCharset());
+				htmlStr = new String(page.getContentData(), charsetName);
 			} catch (UnsupportedEncodingException e) {
 				logger.error("", e);
 			}
@@ -90,7 +89,7 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 
 
 
-	public int getPriority() {
+    public int getPriority() {
 		return priority;
 	}
 

@@ -20,14 +20,14 @@ import com.mongodb.util.JSON;
 
 public class ApiService {
 
-	private static final String mongodbUrl = "mongodb://localhost:27017";
-	private static final String dbName = "coupon";
+	private ApiService() {
+    }
 
 	private enum ApiMethod {
 		LIST, LOG
 	}
 	
-	public static String processRequest(String collection, String function,
+	public static String processRequest(String mongodbUrl, String dbName, String collection, String function,
 			Map<String, String> paramers) throws JsonProcessingException {
 		String jsonResult = null; 
 		ObjectMapper mapper = new ObjectMapper(); 

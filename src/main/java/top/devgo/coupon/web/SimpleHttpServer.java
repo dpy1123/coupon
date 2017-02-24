@@ -28,6 +28,14 @@ import com.sun.net.httpserver.spi.HttpServerProvider;
  */
 public class SimpleHttpServer {
 
+	private String mongoUrl;
+	private String dbName;
+
+	public SimpleHttpServer(String mongoUrl, String dbName) {
+		this.mongoUrl = mongoUrl;
+        this.dbName = dbName;
+	}
+
 	/**
 	 *
 	 * @param port 监听端口
@@ -35,7 +43,7 @@ public class SimpleHttpServer {
 	 * @param executor 执行器,可空
 	 * @throws IOException
 	 */
-	public static void start(int port, int maxConcurrency, Executor executor) throws IOException {
+	public void start(int port, int maxConcurrency, Executor executor) throws IOException {
 		HttpServerProvider provider = HttpServerProvider.provider();
 		HttpServer httpserver = provider.createHttpServer(new InetSocketAddress(port), maxConcurrency);
 		httpserver.createContext("/", new CouponHttpHandler());
@@ -44,7 +52,7 @@ public class SimpleHttpServer {
 		System.out.println("SimpleHttpServer start!");
 	}
 	
-	public static class CouponHttpHandler implements HttpHandler {
+	public class CouponHttpHandler implements HttpHandler {
 
 		public void handle(HttpExchange httpExchange) throws IOException {
 			try {
@@ -90,7 +98,7 @@ public class SimpleHttpServer {
 				String function = call[2];
 				Map<String, String> paramers = parseParamers(httpExchange);
 				if (StringUtil.isNotBlank(collection) && StringUtil.isNotBlank(function)) {
-					responseMsg = ApiService.processRequest(collection, function, paramers);
+					responseMsg = ApiService.processRequest(mongoUrl, dbName, collection, function, paramers);
 				}
 				writeToClient(httpExchange, 200, responseMsg);
 

@@ -1,6 +1,9 @@
 package top.devgo.coupon.core;
 
 import com.udojava.jmx.wrapper.JMXBeanWrapper;
+import top.devgo.coupon.core.dynamic.ProxyManager;
+import top.devgo.coupon.core.dynamic.task.CnProxy;
+import top.devgo.coupon.core.dynamic.task.Cz88;
 import top.devgo.coupon.core.mx.JobMXBean;
 import top.devgo.coupon.core.mx.MXServer;
 import top.devgo.coupon.core.task.Task;
@@ -45,13 +48,16 @@ public class Bootstrap {
 //		beginningTasks.add(new ArchiveTask(1, "22", 1, "mongodb://localhost:27017", "bilibili", false, true));
 //		beginningTasks.add(new VideoFetchTask(1, "6539460", 1));
 
-//        beginningTasks.add(new UserTask(1, 222380, 222380, "mongodb://172.16.6.112:32633", "bilibili", true));
+//        beginningTasks.add(new UserTask(1, 0, 222380, "mongodb://localhost:27017", "bilibili", true));
+//        beginningTasks.add(new UserTask(1, 0, 222380, "mongodb://172.16.6.112:32633", "bilibili", true));
 //        beginningTasks.add(new FavBoxTask(1, 222380, 222380, "mongodb://172.16.6.112:32633", "bilibili", true, true));
 
 		config.setBeginningTasks(beginningTasks);
 		manager.start(config);
 
-        SimpleHttpServer.start(8877, 100, Executors.newFixedThreadPool(5));
+        new ProxyManager(config.getMongoUrl(), "proxy", manager).start();
+
+        new SimpleHttpServer(config.getMongoUrl(), "coupon").start(8877, 100, Executors.newFixedThreadPool(5));
 
         MXServer.registerMBean(new JMXBeanWrapper(new JobMXBean(manager, config)), new ObjectName("top.devgo.coupon.core.mx:name=JobMXBean, type=JobMXBean"));
         MXServer.start(8899, 8898, "couponMxServer");

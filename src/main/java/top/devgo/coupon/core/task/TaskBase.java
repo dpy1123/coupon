@@ -72,21 +72,31 @@ public abstract class TaskBase implements Task, Comparable<Task> {
 	 * @return
 	 */
 	protected String getHtmlStr(Page page) {
-		String htmlStr = null;
-		String type = page.getContentType();
-		if(type != null){//text/html;charset=utf-8; OR application/json; charset=UTF-8
-			try {
-				String charsetName = page.getContentCharset();
-                if (charsetName == null)
-                    charsetName = "UTF-8";
-				htmlStr = new String(page.getContentData(), charsetName);
-			} catch (UnsupportedEncodingException e) {
-				logger.error("", e);
-			}
-		}
-		return htmlStr;
+		return getHtmlStr(page, "UTF-8");
 	}
 
+    /**
+     *
+     * @param page
+     * @param charset
+     * @return
+     */
+    protected String getHtmlStr(Page page, String charset) {
+        String htmlStr = null;
+        String type = page.getContentType();
+        if(type != null){//text/html;charset=utf-8; OR application/json; charset=UTF-8
+            try {
+                String charsetName = page.getContentCharset();
+                if (charsetName == null)
+                    charsetName = charset;
+                if (page.getContentData() != null)
+                    htmlStr = new String(page.getContentData(), charsetName);
+            } catch (UnsupportedEncodingException e) {
+                logger.error("", e);
+            }
+        }
+        return htmlStr;
+    }
 
 
     public int getPriority() {

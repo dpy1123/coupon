@@ -1,6 +1,7 @@
 package top.devgo.coupon.core;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -41,9 +42,9 @@ public class Crawler implements Runnable {
 		try {
 			response = httpClient.execute(request, new BasicHttpContext());
 			newTasks = task.process(response);
-		} catch (HttpHostConnectException e) {
-            stage.addTaskToQueue(task);//re-post
 		} catch (IOException e) {
+            stage.addTaskToQueue(task);//re-post
+//		} catch (IOException e) {
 			logger.error("", e);
 		}finally{
 			if (response != null) {

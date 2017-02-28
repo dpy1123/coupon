@@ -74,7 +74,8 @@ public class UserTask extends TaskBase {
                 .setHeader("Referer", "http://space.bilibili.com/"+uId+"/")
                 .setHeader("X-Requested-With", "XMLHttpRequest")
                 .setHeader("User-Agent", UserAgent.getUA())
-                .setConfig(RequestConfig.custom().setProxy(HttpHost.create(IpProxy.getProxyHost())).build())
+                .setConfig(RequestConfig.custom().setProxy(
+                        HttpHost.create(IpProxy.getProxyHost(mongoURI))).build())
                 .build();
         return request;
     }
@@ -82,17 +83,19 @@ public class UserTask extends TaskBase {
     @Override
     protected void process(Page page) {
         String htmlStr = getHtmlStr(page);
-        htmlStr = TextUtil.decodeUnicode2(htmlStr);
+        if (htmlStr != null)
+            htmlStr = TextUtil.decodeUnicode2(htmlStr);
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> result = null;
         try {
             result = mapper.readValue(htmlStr, new TypeReference<Map<String, Object>>() { } );
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("解析错误", e);
         }
 
-        if (result!=null && (boolean)result.get("status")) {
+
+        if (result != null && Boolean.valueOf(String.valueOf(result.get("status")))) {
             Map<String, Object> data = (Map<String, Object>) result.get("data");
             //调整数据
             data.put("_id", uId+"");//指定主键

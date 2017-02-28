@@ -102,9 +102,9 @@ public class CrawlerManager {
 
             private int calcNewInterval(int oldInterval, int tasks, int working, int poolSize) {
                 int times = tasks / poolSize;
-                if (times >= 100 || tasks < 1)
+                if ((times >= 100 || tasks < 1) && oldInterval < 1000)
                     return oldInterval * 2;
-                else if (working<poolSize && oldInterval>20)
+                else if ((tasks > 0 && working < poolSize) && oldInterval > 20)
                     return oldInterval / 2;
                 else
                     return oldInterval;

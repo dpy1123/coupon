@@ -1,0 +1,58 @@
+package top.devgo.coupon.core.dynamic;
+
+import org.apache.log4j.Logger;
+import top.devgo.coupon.core.CrawlerManager;
+import top.devgo.coupon.core.dynamic.job.IpValidator;
+import top.devgo.coupon.core.dynamic.task.CnProxy;
+import top.devgo.coupon.core.dynamic.task.Cz88;
+
+import java.util.Date;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Created by dd on 17/2/28.
+ */
+public class ProxyManager {
+    private static Logger logger = Logger.getLogger(ProxyManager.class.getName());
+
+    private boolean started = false;
+    private ScheduledThreadPoolExecutor executor;
+    private CrawlerManager manager;
+    private String mongoUrl;
+    private String dbName;
+
+    public ProxyManager(String mongoUrl, String dbName, CrawlerManager manager) {
+        this.mongoUrl = mongoUrl;
+        this.dbName = dbName;
+        this.manager = manager;
+        executor = new ScheduledThreadPoolExecutor(2);
+    }
+
+    public void start(){
+        if(started){//已被启动
+            logger.info("ProxyManager already started");
+            return;
+        }
+
+        executor.scheduleWithFixedDelay(new IpValidator(mongoUrl, dbName), 0, 1, TimeUnit.DAYS);
+        executor.scheduleWithFixedDelay(() -> {
+                manager.addTaskToQueue(new Cz88(mongoUrl, dbName));
+                manager.addTaskToQueue(new CnProxy(mongoUrl, dbName));
+        }, 0, 3, TimeUnit.DAYS);
+
+        started = true;
+        logger.info("ProxyManager start, at: "+ new Date());
+    }
+
+    public void stop() {
+        if(!started){//未启动
+            return;
+        }
+
+        started = false;
+        executor.shutdown();
+
+        logger.info("ProxyManager stop, at: "+ new Date());
+    }
+}

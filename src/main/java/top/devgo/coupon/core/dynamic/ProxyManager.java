@@ -1,12 +1,14 @@
 package top.devgo.coupon.core.dynamic;
 
 import org.apache.log4j.Logger;
+import top.devgo.coupon.core.Config;
 import top.devgo.coupon.core.CrawlerManager;
 import top.devgo.coupon.core.dynamic.job.IpValidator;
 import top.devgo.coupon.core.dynamic.task.CnProxy;
 import top.devgo.coupon.core.dynamic.task.Cz88;
+import top.devgo.coupon.core.task.Task;
 
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -19,11 +21,11 @@ public class ProxyManager {
     private boolean started = false;
     private ScheduledThreadPoolExecutor executor;
     private CrawlerManager manager;
-    private String mongoUrl;
+    private Config config;
     private String dbName;
 
-    public ProxyManager(String mongoUrl, String dbName, CrawlerManager manager) {
-        this.mongoUrl = mongoUrl;
+    public ProxyManager(Config config, String dbName, CrawlerManager manager) {
+        this.config = config;
         this.dbName = dbName;
         this.manager = manager;
         executor = new ScheduledThreadPoolExecutor(2);
@@ -35,11 +37,14 @@ public class ProxyManager {
             return;
         }
 
-        executor.scheduleWithFixedDelay(new IpValidator(mongoUrl, dbName), 0, 1, TimeUnit.DAYS);
+        executor.scheduleWithFixedDelay(new IpValidator(config.getMongoUrl(), dbName), 3, 3, TimeUnit.HOURS);
         executor.scheduleWithFixedDelay(() -> {
-                manager.addTaskToQueue(new Cz88(mongoUrl, dbName));
-                manager.addTaskToQueue(new CnProxy(mongoUrl, dbName));
-        }, 0, 3, TimeUnit.DAYS);
+            config.setBeginningTasks(Arrays.asList(
+                new Cz88(config.getMongoUrl(), dbName),
+                new CnProxy(config.getMongoUrl(), dbName)
+            ));
+            manager.start(config);
+        }, 0, 3, TimeUnit.HOURS);
 
         started = true;
         logger.info("ProxyManager start, at: "+ new Date());

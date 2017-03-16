@@ -55,7 +55,7 @@ public class Bootstrap {
 		config.setBeginningTasks(beginningTasks);
 		manager.start(config);
 
-        new ProxyManager(config.getMongoUrl(), "proxy", manager).start();
+        new ProxyManager(config, "proxy", manager).start();
 
         new SimpleHttpServer(config.getMongoUrl(), "coupon").start(8877, 100, Executors.newFixedThreadPool(5));
 

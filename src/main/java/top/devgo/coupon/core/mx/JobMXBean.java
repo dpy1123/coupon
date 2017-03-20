@@ -6,6 +6,7 @@ import com.udojava.jmx.wrapper.JMXBeanOperation;
 import com.udojava.jmx.wrapper.JMXBeanParameter;
 import top.devgo.coupon.core.Config;
 import top.devgo.coupon.core.CrawlerManager;
+import top.devgo.coupon.core.mx.JobMXBean.Segment.Batch;
 import top.devgo.coupon.core.task.Task;
 import top.devgo.coupon.core.task.bilibili.ArchiveTask;
 import top.devgo.coupon.core.task.bilibili.BilibiliConfig;
@@ -81,7 +82,12 @@ public class JobMXBean {
             @JMXBeanParameter(name = "maxUId", description = "本次抓取最大的用户uid.如果只抓特定用户,和uId设置成一样") int maxUId,
             @JMXBeanParameter(name = "updateRecord", description = "是否更新已有记录") boolean updateRecord) {
         List<Task> beginningTasks = new ArrayList<Task>();
-        beginningTasks.add(new UserTask(uId, maxUId, config.getMongoUrl(), "bilibili", updateRecord));
+
+        new Segment().segment(maxUId - uId, 100).forEach(batch -> {
+            int begin = uId + batch.start;
+            int fin = uId + batch.end + 1;
+            beginningTasks.add(new UserTask(begin, fin, config.getMongoUrl(), "bilibili", updateRecord));
+        });
         config.setBeginningTasks(beginningTasks);
         crawlerManager.start(config);
     }
@@ -97,4 +103,39 @@ public class JobMXBean {
         config.setBeginningTasks(beginningTasks);
         crawlerManager.start(config);
     }
+
+    static class Segment {
+        class Batch {
+            int start;
+            int end;
+
+            public Batch(int start, int end) {
+                this.start = start;
+                this.end = end;
+            }
+        }
+
+        /**
+         * 返回分段 eg: total=10, batch=4, return=[{0~3},{4~7},{8~10}]
+         * @param total
+         * @param batchSize
+         * @return
+         */
+        public List<Batch> segment(int total, int batchSize){
+            List<Batch> batchs = new ArrayList<>();
+            int seg = total / batchSize;
+            if (seg < 0) {
+                batchs.add(new Batch(0, total));
+                return batchs;
+            }
+            for (int i = 0; i < seg; i++) {
+                batchs.add(new Batch(i*batchSize, (i+1)*batchSize-1));
+            }
+            if (seg*batchSize < total)
+                batchs.add(new Batch(seg*batchSize, total));
+            return batchs;
+        }
+
+    }
+
 }

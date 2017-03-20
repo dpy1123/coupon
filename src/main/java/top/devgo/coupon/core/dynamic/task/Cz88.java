@@ -78,8 +78,8 @@ public class Cz88 extends TaskBase {
             data.put("addr", addr);
             data.put("state", "grab");
             data.put("source", "cz88.net");
-            data.put("fetch_date", DateUtil.getDateString(new Date()));
-            data.put("validate_date", "");
+            data.put("fetch_date", new Date());
+//            data.put("validate_date", "");
 
             list.add(data);
         }

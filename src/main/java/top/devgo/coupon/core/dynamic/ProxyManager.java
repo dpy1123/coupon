@@ -37,7 +37,7 @@ public class ProxyManager {
             return;
         }
 
-        executor.scheduleWithFixedDelay(new IpValidator(config.getMongoUrl(), dbName), 3, 3, TimeUnit.HOURS);
+        executor.scheduleWithFixedDelay(new IpValidator(config.getMongoUrl(), dbName), 0, 3, TimeUnit.HOURS);
         executor.scheduleWithFixedDelay(() -> {
             config.setBeginningTasks(Arrays.asList(
                 new Cz88(config.getMongoUrl(), dbName),

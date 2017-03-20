@@ -24,11 +24,13 @@ public class Crawler implements Runnable {
 	private CloseableHttpClient httpClient;
 	private Task task;
 	private CrawlerManager stage;
-	
+	private int retryTimes;
+
 	public Crawler(CloseableHttpClient httpClient, Task task, CrawlerManager stage) {
 		this.httpClient = httpClient;
 		this.task = task;
 		this.stage = stage;
+		this.retryTimes = 0;
 	}
 	
 	/**
@@ -43,9 +45,13 @@ public class Crawler implements Runnable {
 			response = httpClient.execute(request, new BasicHttpContext());
 			newTasks = task.process(response);
 		} catch (IOException e) {
-            stage.addTaskToQueue(task);//re-post
-//		} catch (IOException e) {
 			logger.error("", e);
+			if (retryTimes < 3){
+				retryTimes++;
+				stage.addTaskToQueue(task);//re-post
+			}else{
+                logger.info(task+"失败3次");
+            }
 		}finally{
 			if (response != null) {
 				try {

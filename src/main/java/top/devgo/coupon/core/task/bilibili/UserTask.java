@@ -74,8 +74,11 @@ public class UserTask extends TaskBase {
                 .setHeader("Referer", "http://space.bilibili.com/"+uId+"/")
                 .setHeader("X-Requested-With", "XMLHttpRequest")
                 .setHeader("User-Agent", UserAgent.getUA())
-                .setConfig(RequestConfig.custom().setProxy(
-                        HttpHost.create(IpProxy.getProxyHost(mongoURI))).build())
+                .setConfig(RequestConfig.custom()
+                            .setConnectTimeout(5*1000)
+                            .setSocketTimeout(5*1000)
+                            .setProxy(HttpHost.create(IpProxy.getProxyHost(mongoURI)))
+                            .build())
                 .build();
         return request;
     }

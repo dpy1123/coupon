@@ -2,6 +2,7 @@ package top.devgo.coupon.core.dynamic.job;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.util.JSON;
+import org.apache.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.jsoup.Connection.Method;
@@ -22,6 +23,8 @@ import java.util.stream.StreamSupport;
  */
 public class IpValidator implements Runnable {
 
+    private static Logger logger = Logger.getLogger(IpValidator.class.getName());
+
     private String mongoUrl;
     private String dbName;
 
@@ -32,11 +35,10 @@ public class IpValidator implements Runnable {
 
     @Override
     public void run() {
-        String date = DateUtil.getDateString(DateUtil.getBeginOfDay(new Date()));
         String queryString = "{" +
                 "   $or:[" +
                 "       {'state':{$eq: 'grab'}}," +
-                "       {'validate_date':{$lt: '"+date+"'}}" +
+                "       {'validate_date':{$lt: '"+DateUtil.getBeginOfDay(new Date())+"'}}" +
                 "   ]" +
                 "}";
         FindIterable<Document> iterable = MongoDBUtil.find((Bson) JSON.parse(queryString), mongoUrl, dbName, "ip_pool");
@@ -54,6 +56,7 @@ public class IpValidator implements Runnable {
                 .collect(Collectors.toList());
 
         MongoDBUtil.insertMany(result, true, mongoUrl, dbName, "ip_pool");
+        logger.info("本次验证了 "+result.size()+" 条记录");
     }
 
 
@@ -87,7 +90,7 @@ public class IpValidator implements Runnable {
 
         public static Document mark(Document doc){
             doc.put("state", isValid(doc)?"valid":"invalid");
-            doc.put("validate_date", DateUtil.getDateString(new Date()));
+            doc.put("validate_date", new Date());
             doc.put("timing", timing(doc));
             return doc;
         }

@@ -73,8 +73,8 @@ public class CnProxy extends TaskBase {
             }
             data.put("state", "grab");
             data.put("source", "cn-proxy.com");
-            data.put("fetch_date", DateUtil.getDateString(new Date()));
-            data.put("validate_date", "");
+            data.put("fetch_date", new Date());
+//            data.put("validate_date", "");
 
             list.add(data);
         }

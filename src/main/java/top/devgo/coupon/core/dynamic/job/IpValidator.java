@@ -67,6 +67,7 @@ public class IpValidator implements Runnable {
                         .method(Method.GET)
                         .ignoreContentType(true)
                         .proxy(doc.getString("ip"), Integer.parseInt(doc.getString("port")))
+                        .timeout(1*1000)
                         .execute();
                 return rep.statusCode() == 200;
             } catch (IOException e) {

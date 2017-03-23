@@ -6,7 +6,8 @@ import top.devgo.coupon.core.CrawlerManager;
 import top.devgo.coupon.core.dynamic.job.IpValidator;
 import top.devgo.coupon.core.dynamic.task.CnProxy;
 import top.devgo.coupon.core.dynamic.task.Cz88;
-import top.devgo.coupon.core.task.Task;
+import top.devgo.coupon.core.dynamic.task.XiciDaili;
+import top.devgo.coupon.core.dynamic.task.XiciDaili.Type;
 
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -41,7 +42,11 @@ public class ProxyManager {
         executor.scheduleWithFixedDelay(() -> {
             config.setBeginningTasks(Arrays.asList(
                 new Cz88(config.getMongoUrl(), dbName),
-                new CnProxy(config.getMongoUrl(), dbName)
+                new CnProxy(config.getMongoUrl(), dbName),
+                new XiciDaili(Type.nn, 1, config.getMongoUrl(), dbName),
+                new XiciDaili(Type.nt, 1, config.getMongoUrl(), dbName),
+                new XiciDaili(Type.wn, 1, config.getMongoUrl(), dbName),
+                new XiciDaili(Type.wt, 1, config.getMongoUrl(), dbName)
             ));
             manager.start(config);
         }, 0, 3, TimeUnit.HOURS);

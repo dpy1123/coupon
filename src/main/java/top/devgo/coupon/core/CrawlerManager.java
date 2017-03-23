@@ -91,7 +91,7 @@ public class CrawlerManager {
                         int jobs = Math.min(tasks, (config.getMaxCrawlers()-workingThread+1) * Math.max(2, (tasks/config.getTaskQueueCapacity())*(config.getTaskScanInterval()/1000)));//提供当前空余worker数2倍或更多倍的任务
                         for (int i = 0; i < jobs; i++) {
                             Task task = taskQueue.poll();
-                            crawlerThreadPool.execute(new Crawler(httpclient, task, self));
+                            crawlerThreadPool.submit(new Crawler(httpclient, task, self));
                         }
                         logger.info("任务总数"+tasks+"，新增"+jobs+"个任务，尚有"+workingThread+"个任务在执行。");
                     }
